@@ -1,3 +1,4 @@
+using Game.Player;
 using GameViews.Departure.SubViews;
 using Inklewriter;
 using System;
@@ -88,7 +89,7 @@ public class DebugDataWindow
         GUILayout.Space(3);
 
         GUILayout.Label("<b>Market</b>", GetLabelStyle());
-        GUILayout.Label("Market data not yet implemented.", GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
+        GUILayout.Label(GetMarketData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
         GUILayout.EndVertical();
 
         // Right Section: Available Choices and Luggage
@@ -197,6 +198,35 @@ public class DebugDataWindow
         journeysData.Append("\n");
 
         return journeysData.ToString();
+    }
+
+    private string GetMarketData()
+    {
+        if (player == null)
+            return "Market data not available.";
+        else if (!player.marketIsAvailableInCurrentCity)
+            return "City does not have a market.";
+        else if (player.marketIsShut)
+            return "Market is currently shut.";
+
+        var market = player.marketForCurrentCity;
+        StringBuilder marketReport = new StringBuilder();
+        marketReport.Append($"Market Name: {player.currentCity.market.marketName}\n");
+        if (market.sellsCases)
+        {
+            marketReport.Append($"Market sells case for {market.casePrice}.\n");
+        }
+        else
+        {
+            marketReport.Append("Market does not sell cases.\n");
+        }
+
+        marketReport.Append($"Items: \n");
+        foreach (var item in market.items)
+        {
+            marketReport.Append($"  {item.item.name} - Price: {item.price}\n");
+        }
+        return marketReport.ToString();
     }
 
     private string GetStoryData()
