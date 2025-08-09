@@ -1,11 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using Game;
-using Game.Conversation;
 using Game.Player;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.TextCore;
 
 namespace NeuroValet;
 
@@ -15,8 +12,8 @@ public class Plugin : BaseUnityPlugin
     private DebugDataWindow gameDataForm = new DebugDataWindow();
     internal static new ManualLogSource Logger;
 
-    private IPlayer player;
     private Game.Game gameInfo;
+    private GameData.Clock clock;
 
     private void Awake()
     {
@@ -28,12 +25,6 @@ public class Plugin : BaseUnityPlugin
     private void Start()
     {
         Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Starting!");
-        gameInfo = FindObjectOfType<Game.Game>();
-
-        // Pass initial references to GameDataForm
-        gameDataForm.SetPlayer(player);
-        gameDataForm.SetGameInfo(gameInfo);
-
         StartCoroutine(GatherGameData());
     }
 
@@ -56,13 +47,14 @@ public class Plugin : BaseUnityPlugin
                 Logger.LogWarning("Game info not found! Attempting to find...");
                 gameInfo = FindObjectOfType<Game.Game>();
             }
-            else
+            if (clock == null)
             {
-                player = gameInfo?.player;
+                clock = (GameData.Clock)GameData.Static.clock;
             }
 
-            gameDataForm.SetGameInfo(gameInfo);
-            gameDataForm.SetPlayer(player);
+            gameDataForm.SetGameInfo(gameInfo, clock);
+            gameDataForm.SetPlayer(gameInfo?.player);
+            gameDataForm.SetStory(gameInfo?.story);
 
             yield return new WaitForSeconds(1f);
         }
