@@ -12,12 +12,12 @@ namespace NeuroValet;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class Plugin : BaseUnityPlugin
 {
+    private DebugDataWindow gameDataForm = new DebugDataWindow();
     internal static new ManualLogSource Logger;
 
     private IPlayer player;
     private Game.Game gameInfo;
-    private ConversationTopic conversationTopic;
-        
+
     private void Awake()
     {
         // Plugin startup logic
@@ -28,42 +28,48 @@ public class Plugin : BaseUnityPlugin
     private void Start()
     {
         Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Starting!");
-
-        player = FindObjectOfType<Player>();
         gameInfo = FindObjectOfType<Game.Game>();
-        StartCoroutine(PeriodicLogger());
+
+        // Pass initial references to GameDataForm
+        gameDataForm.SetPlayer(player);
+        gameDataForm.SetGameInfo(gameInfo);
+
+        StartCoroutine(GatherGameData());
     }
 
-    private IEnumerator PeriodicLogger()
+    private void Update()
     {
-        Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Periodic!");
+        // Toggle the visibility of the debug form when F1 is pressed
+        if (Input.GetKeyDown(KeyCode.F1))
+        {
+            gameDataForm.ToggleDebugWindow();
+        }
+    }
+
+    // Once a second, Gather game state data
+    private IEnumerator GatherGameData()
+    {
         while (true)
         {
-            if (player != null)
+            if (gameInfo == null)
             {
-                Logger.LogInfo($"Prologue active: {gameInfo.prologueActive}");
-                Logger.LogInfo($"Prologue complete: {gameInfo.epilogueActive}");
-                Logger.LogInfo($"Prologue complete: {gameInfo.store.isActiveAndEnabled}");
-
-                Logger.LogInfo($"Active Journey: {JsonUtility.ToJson(player.activeJourney)}");
-                Logger.LogInfo($"Current City: {JsonUtility.ToJson(player.currentCity)}");
-                Logger.LogInfo($"Player Health: {player.health}. HealthInInk: {player.healthInInk}. Money: {player.money.poundsFloat}");
-                Logger.LogInfo($"Next City: {JsonUtility.ToJson(player.nextScheduledCity)}. Is Night: {player.nightActive}");
-                Logger.LogInfo($"Available Cities: {player.availableDestinationCities.Count}");
-                Logger.LogInfo($"Available Journeys Now {player.journeysAvailableToLeaveNow.Count}");
-                Logger.LogInfo($"First available journey now {player.journeysAvailableToLeaveNow.FirstOrDefault()?.viaCities.FirstOrDefault()?.viaCity.name ?? ""}");
-                Logger.LogInfo($"Available Journeys Later {player.journeysAvailableToLeaveLater.Count}");
-                Logger.LogInfo($"First available journey Later {player.journeysAvailableToLeaveLater.FirstOrDefault()?.viaCities.FirstOrDefault()?.viaCity.name ?? ""}");
-                Logger.LogInfo($"Ready for story: {player.readyForStory}. StoryContentSeenForExplore {player.storyContentSeenForExplore}");
-                Logger.LogInfo($"London: {player.isInLondonAtStartOfGame}, back in london: {player.backInLondon}");
-                Logger.LogInfo("------------------------------------");
+                Logger.LogWarning("Game info not found! Attempting to find...");
+                gameInfo = FindObjectOfType<Game.Game>();
             }
             else
             {
-                Logger.LogWarning("Player not found!");
-                player = FindObjectOfType<Player>();
+                player = gameInfo?.player;
             }
-            yield return new WaitForSeconds(5f);
+
+            gameDataForm.SetGameInfo(gameInfo);
+            gameDataForm.SetPlayer(player);
+
+            yield return new WaitForSeconds(1f);
         }
+    }
+
+    void OnGUI()
+    {
+        gameDataForm.Draw();
     }
 }
