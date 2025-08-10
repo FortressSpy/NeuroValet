@@ -1,7 +1,6 @@
+using Game.Luggage;
 using Game.Player;
-using GameViews.Departure.SubViews;
-using Inklewriter;
-using System;
+using GameData;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -82,7 +81,7 @@ public class DebugDataWindow
         GUILayout.Space(5);
 
         GUILayout.Label("<b>Text Data</b>", GetLabelStyle());
-        textDataScrollPos = GUILayout.BeginScrollView(textDataScrollPos, GUILayout.Height(250));
+        textDataScrollPos = GUILayout.BeginScrollView(textDataScrollPos, GUILayout.Height(200));
         GUILayout.Label(GetStoryData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
         GUILayout.EndScrollView();
 
@@ -110,6 +109,7 @@ public class DebugDataWindow
 
         GUILayout.EndHorizontal();
 
+        // Allow the window to be dragged
         GUI.DragWindow();
     }
 
@@ -204,9 +204,9 @@ public class DebugDataWindow
     {
         if (player == null)
             return "Market data not available.";
-        else if (!player.marketIsAvailableInCurrentCity)
+        else if (!player.currentCityHasMarket)
             return "City does not have a market.";
-        else if (player.marketIsShut)
+        else if (player.currentCity?.name != "London" && player.marketIsShut)
             return "Market is currently shut.";
 
         var market = player.marketForCurrentCity;
@@ -214,7 +214,17 @@ public class DebugDataWindow
         marketReport.Append($"Market Name: {player.currentCity.market.marketName}\n");
         if (market.sellsCases)
         {
-            marketReport.Append($"Market sells case for {market.casePrice}.\n");
+            bool canBuy = player.money.pounds > float.Parse(market.casePrice);
+
+            GUILayout.BeginHorizontal();
+            GUI.enabled = canBuy; // Enable or disable the button based on the condition
+            if (GUILayout.Button($"Buy case - {market.casePrice}", GUILayout.Width(300)))
+            {
+                player.BuyAndAddSuitcase(new Suitcase());
+            }
+            GUI.enabled = true; // Re-enable GUI for other elements
+            GUILayout.EndHorizontal();
+            marketReport.Append($"Buy case for {market.casePrice}.\n");
         }
         else
         {
@@ -224,8 +234,19 @@ public class DebugDataWindow
         marketReport.Append($"Items: \n");
         foreach (var item in market.items)
         {
-            marketReport.Append($"  {item.item.name} - Price: {item.price}\n");
+            bool canBuy = player.CanBuyItemAtPrice(item.item, item.price);
+
+            GUILayout.BeginHorizontal();
+            GUI.enabled = canBuy; // Enable or disable the button based on the condition
+            if (GUILayout.Button($"Buy {item.item.name} - Price: {item.price.pounds}", GUILayout.Width(300)))
+            {
+                player.SlotsAvailableInSuitcaseAtIndex(0);
+                player.BuyItemFromMarket(item.item, item.price, player.suitcases[0], new SuitcasePosition(0,0)); // TODO figure out open slots
+            }
+            GUI.enabled = true; // Re-enable GUI for other elements
+            GUILayout.EndHorizontal();
         }
+        
         return marketReport.ToString();
     }
 
@@ -278,7 +299,9 @@ public class DebugDataWindow
             return "Game data not available.";
 
         return
-            $"Date: {player.dayNumberAdjustedForDateLine}. Time: {clock.currentTime.ToString()}, TimeOfDay: {clock.currentTimeOfDay.ToString()}\n" +
+            $"Date: {player.dayNumberAdjustedForDateLine}. " +
+            $"Time: {clock.currentTime.hoursPart.hours}:{clock.currentTime.minutesPart.minutes}, " +
+            $"ToD: {clock.currentTimeOfDay.hoursPart.hours}:{clock.currentTimeOfDay.minutesPart.minutes}\n" +
             $"Prologue Active: {gameInfo.prologueActive}\n" +
             $"Epilogue Active: {gameInfo.epilogueActive}\n" +
             $"Begun Game: {gameInfo.hasBegunGame}, Zoomed Out: {gameInfo.hasBegunGameAndVisitedMarketAndZoomedOut}," +

@@ -1,7 +1,11 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
+using Game.Luggage;
 using Game.Player;
+using GameResources.Items;
 using System.Collections;
+using System.Numerics;
+using System.Text;
 using UnityEngine;
 
 namespace NeuroValet;
@@ -34,6 +38,19 @@ public class Plugin : BaseUnityPlugin
         if (Input.GetKeyDown(KeyCode.F1))
         {
             gameDataForm.ToggleDebugWindow();
+        }
+
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            var player = gameInfo?.player;
+            var market = player.marketForCurrentCity;
+            var item = market?.items[0];
+
+            if (player.CanBuyItemAtPrice(item.Value.item, item.Value.price))
+            {
+                player.BuyItemFromMarket(item.Value.item, item.Value.price, player.suitcases[0], new SuitcasePosition(0, 0)); // TODO figure out open slots
+                player.RefreshSuitcasesNotingAcquisitions(true);
+            }
         }
     }
 
