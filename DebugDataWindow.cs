@@ -190,7 +190,7 @@ public class DebugDataWindow
         journeysData.Append($"Available Cities: {player.availableDestinationCities.Count}\n");
         journeysData.Append($"Custom Journeys: {gameInfo.customJourneys.customJourneys.Count}\n");
         journeysData.Append($"Number of Completions: {gameInfo.numberOfCompletions}\n");
-
+        journeysData.Append($"Number of visible journeys: {player.visibleJourneysWorldwide.Count}");
         journeysData.Append($"Journeys Now: {player.journeysAvailableToLeaveNow.Count}\n");
         foreach (var journey in player.journeysAvailableToLeaveNow)
         {
