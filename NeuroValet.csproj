@@ -32,4 +32,10 @@
       <HintPath>lib\Assembly-CSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Update="Assets\mouse-pointer.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

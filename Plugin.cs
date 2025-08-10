@@ -3,8 +3,8 @@ using BepInEx.Logging;
 using Game.Luggage;
 using Game.Player;
 using GameResources.Items;
+using HarmonyLib;
 using System.Collections;
-using System.Numerics;
 using System.Text;
 using UnityEngine;
 
@@ -21,9 +21,16 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
+        Harmony.CreateAndPatchAll(typeof(MouseSimulator).Assembly, MyPluginInfo.PLUGIN_GUID);
+
         // Plugin startup logic
         Logger = base.Logger;
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
+
+        // Load mouse debug texture
+        string pluginDir = System.IO.Path.GetDirectoryName(Info.Location);
+        string cursorPath = System.IO.Path.Combine(pluginDir, @"Assets\mouse-pointer.png");
+        MouseSimulator.LoadCursorTexture(cursorPath);
     }
 
     private void Start()
@@ -42,15 +49,15 @@ public class Plugin : BaseUnityPlugin
 
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            var player = gameInfo?.player;
-            var market = player.marketForCurrentCity;
-            var item = market?.items[0];
-
-            if (player.CanBuyItemAtPrice(item.Value.item, item.Value.price))
-            {
-                player.BuyItemFromMarket(item.Value.item, item.Value.price, player.suitcases[0], new SuitcasePosition(0, 0)); // TODO figure out open slots
-                player.RefreshSuitcasesNotingAcquisitions(true);
-            }
+            MouseSimulator.ReleaseMousePosition();
+        }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            MouseSimulator.SetMousePosition(new Vector3(500, 500, 0), Logger);
+        }
+        else if (Input.GetKeyDown(KeyCode.F4))
+        {
+            MouseSimulator.SetMousePosition(new Vector3(200, 200, 0), Logger);
         }
     }
 
@@ -80,5 +87,6 @@ public class Plugin : BaseUnityPlugin
     void OnGUI()
     {
         gameDataForm.Draw();
+        MouseSimulator.DrawCursor();
     }
 }
