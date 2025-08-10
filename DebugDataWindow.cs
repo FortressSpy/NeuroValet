@@ -1,6 +1,7 @@
 using Game.Luggage;
 using Game.Player;
 using GameData;
+using System;
 using System.Linq;
 using System.Text;
 using UnityEngine;
@@ -98,11 +99,18 @@ public class DebugDataWindow
         GUILayout.TextArea(GetChoicesData(), GetChoicesAreaStyle(), GUILayout.ExpandHeight(true));
         GUILayout.EndScrollView();
 
-        GUILayout.Space(10);
+        GUILayout.Space(2);
 
         GUILayout.Label("<b>Luggage</b>", GetLabelStyle());
-        luggageScrollPos = GUILayout.BeginScrollView(luggageScrollPos, GUILayout.Height(250));
+        luggageScrollPos = GUILayout.BeginScrollView(luggageScrollPos, GUILayout.Height(100));
         GUILayout.Label(GetLuggageData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
+        GUILayout.EndScrollView();
+
+        GUILayout.Space(2);
+
+        GUILayout.Label("<b>Views</b>", GetLabelStyle());
+        luggageScrollPos = GUILayout.BeginScrollView(luggageScrollPos, GUILayout.Height(150));
+        GUILayout.Label(GetViewsData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
         GUILayout.EndScrollView();
 
         GUILayout.EndVertical();
@@ -291,6 +299,36 @@ public class DebugDataWindow
             }
         }
         return luggageInfo.ToString();
+    }
+
+
+    private string GetViewsData()
+    {
+        var gameViews = GameViews.Static.gameViews;
+        if (gameViews == null)
+            return "Game views not available.";
+
+        StringBuilder availableViews = new StringBuilder();
+
+        availableViews.Append(gameViews.bottomNavView.isVisible ? "Bottom Nav\n" : "");
+        availableViews.Append(gameViews.cameraControlsView.isVisible ? "Camera Control\n" : "");
+        availableViews.Append(gameViews.clockView.isVisible ? "Clock View\n" : "");
+        availableViews.Append(gameViews.cloudView.isVisible ? "Cloud View\n" : "");
+        availableViews.Append(gameViews.converseView.isVisible ? "Converse\n" : "");
+        availableViews.Append(gameViews.creditsView.isVisible ? "Credits\n" : "");
+        availableViews.Append(gameViews.departureView.isVisible ? "Departure\n" : "");
+        availableViews.Append(gameViews.fadeOutView.isVisible ? "Fade Out\n" : "");
+        availableViews.Append(gameViews.fullScreenQuestionView.isVisible ? "Full Screen Question\n" : "");
+        availableViews.Append(gameViews.infoCardView.isVisible ? "Info Card\n" : "");
+        availableViews.Append(gameViews.introView.isVisible ? "Intro\n" : "");
+        availableViews.Append(gameViews.largeTitleView.isVisible ? $"Large Title: {gameViews.largeTitleView.titleText}\n" : "");
+        availableViews.Append(gameViews.marketAndLuggageView.isVisible ? "Market & Luggage\n" : "");
+        availableViews.Append(gameViews.overviewView.isVisible ? "Overview\n" : "");
+        availableViews.Append(gameViews.screenshotView.isVisible ? "Screenshot\n" : "");
+        availableViews.Append(gameViews.settingsView.isVisible ? "Settings\n" : "");
+        availableViews.Append(gameViews.storyView.isVisible ? "Story\n" : "");
+
+        return availableViews.ToString();
     }
 
     private string GetGameData()
