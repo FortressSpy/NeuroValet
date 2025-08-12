@@ -5,6 +5,7 @@ using Game.Player;
 using GameResources.Items;
 using HarmonyLib;
 using NeuroSdk;
+using NeuroValet.Utils;
 using System.Collections;
 using System.Text;
 using UnityEngine;

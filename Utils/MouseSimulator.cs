@@ -2,7 +2,7 @@
 using HarmonyLib;
 using UnityEngine;
 
-namespace NeuroValet
+namespace NeuroValet.Utils
 {
     public static class MouseSimulator
     {
