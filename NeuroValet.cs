@@ -12,7 +12,7 @@ using UnityEngine;
 namespace NeuroValet;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
-public class Plugin : BaseUnityPlugin
+public class NeuroValet : BaseUnityPlugin
 {
     private DebugDataWindow gameDataForm = new DebugDataWindow();
     internal static new ManualLogSource Logger;
