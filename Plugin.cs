@@ -4,6 +4,7 @@ using Game.Luggage;
 using Game.Player;
 using GameResources.Items;
 using HarmonyLib;
+using NeuroSdk;
 using System.Collections;
 using System.Text;
 using UnityEngine;
@@ -35,6 +36,7 @@ public class Plugin : BaseUnityPlugin
 
     private void Start()
     {
+        NeuroSdkSetup.Initialize("80 Days");
         Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} Starting!");
         StartCoroutine(GatherGameData());
     }

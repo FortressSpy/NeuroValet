@@ -71,10 +71,18 @@
               "target": "Package",
               "version": "[1.0.2, )"
             },
+            "Newtonsoft.Json": {
+              "target": "Package",
+              "version": "[13.0.3, )"
+            },
             "UnityEngine.Modules": {
               "include": "Compile",
               "target": "Package",
               "version": "[2018.4.30, )"
+            },
+            "VedalAI.NeuroSdk.Unity": {
+              "target": "Package",
+              "version": "[2.0.0-pre.3, )"
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.304\\RuntimeIdentifierGraph.json"
