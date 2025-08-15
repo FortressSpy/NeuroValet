@@ -1,4 +1,5 @@
-﻿using NeuroSdk.Actions;
+﻿using BepInEx.Logging;
+using NeuroSdk.Actions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,12 +13,26 @@ namespace NeuroValet
     /// </summary>
     internal class ActionManager
     {
+        internal struct PossibleActions
+        {
+            public List<INeuroAction> Actions;
+            public string Context;
+            public bool IsContextSilent;
+        }
+
+        private ManualLogSource logger;
+
+        public ActionManager(ManualLogSource logger)
+        {
+            this.logger = logger;
+        }
+
         // TODO - this should get state data as a parameter.
-        List<INeuroAction> GetPossibleActions() 
+        public PossibleActions GetPossibleActions() 
         { 
             throw new NotImplementedException(); 
         }
-        void ExecuteAction(INeuroAction action)
+        public void ExecuteAction(INeuroAction action)
         {
             throw new NotImplementedException();
         }

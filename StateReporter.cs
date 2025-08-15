@@ -1,4 +1,5 @@
-﻿using NeuroValet.StateData;
+﻿using BepInEx.Logging;
+using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,13 @@ namespace NeuroValet
     /// </summary>
     internal class StateReporter
     {
+        private ManualLogSource logger;
+
+        public StateReporter(ManualLogSource logger)
+        {
+            this.logger = logger;
+        }
+
         public GameState GetGameState()
         {
             throw new NotImplementedException();

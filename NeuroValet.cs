@@ -6,6 +6,9 @@ using Game.Player;
 using GameResources.Items;
 using HarmonyLib;
 using NeuroSdk;
+using NeuroSdk.Actions;
+using NeuroSdk.Messages.Outgoing;
+using NeuroValet.StateData;
 using NeuroValet.Utils;
 using System;
 using System.Collections;
@@ -26,6 +29,9 @@ public class NeuroValet : BaseUnityPlugin
     private GameData.Clock clock;
     private bool isReady = false;
 
+    private ActionManager actionManager;
+    private StateReporter stateReporter;
+
     private void Awake()
     {
         configWebSocketUrl = Config.Bind("NeuroSdk",                // The section under which the option is shown
@@ -43,6 +49,9 @@ public class NeuroValet : BaseUnityPlugin
         string pluginDir = System.IO.Path.GetDirectoryName(Info.Location);
         string cursorPath = System.IO.Path.Combine(pluginDir, @"Assets\mouse-pointer.png");
         MouseSimulator.LoadCursorTexture(cursorPath);
+
+        actionManager = new ActionManager(Logger);
+        stateReporter = new StateReporter(Logger);
     }
 
     private void Start()
@@ -56,6 +65,9 @@ public class NeuroValet : BaseUnityPlugin
             isReady = true;
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} launched. Web socket set to: {configWebSocketUrl.Value}");
             StartCoroutine(GatherGameData());
+
+            // TODO - improve the context. Ask how much should be here (explanation of the game mechanics? world? tips (like how much money you generally need)?
+            Context.Send("You are playing as Passepartout, valet to Phileas Fogg. He made a bet to travel the world in 80 days or less, starting from London.", true);
         }
         else
         {
@@ -66,6 +78,10 @@ public class NeuroValet : BaseUnityPlugin
     private void Update()
     {
         if (!isReady) return;
+
+        // TODO - need to gather game state and send it as context?
+        // TODO - need to send first context, teaching how to play the game (on start?)
+        // TODO - need to understand when I trigger new action report / new context report. on every action maybe? can't do it immediately though, because actions take time to execute sometimes.
 
         // Toggle the visibility of the debug form when F1 is pressed
         if (Input.GetKeyDown(KeyCode.F1))
@@ -114,5 +130,21 @@ public class NeuroValet : BaseUnityPlugin
     {
         gameDataForm.Draw();
         MouseSimulator.DrawCursor();
+    }
+
+    public void PrepareActionWindow()
+    {
+        NeuroSdk.Actions.ActionWindow actionWindow = ActionWindow.Create(this.gameObject);
+        var actionsInfo = actionManager.GetPossibleActions();
+        if (!actionsInfo.Context.IsNullOrEmpty())
+        {
+            actionWindow.SetContext(actionsInfo.Context, actionsInfo.IsContextSilent);
+        }
+
+        foreach (INeuroAction action in actionsInfo.Actions)
+        {
+            actionWindow.AddAction(action);
+        }
+        actionWindow.Register();
     }
 }
