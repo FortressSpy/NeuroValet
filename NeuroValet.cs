@@ -9,7 +9,7 @@ using NeuroSdk;
 using NeuroSdk.Actions;
 using NeuroSdk.Messages.Outgoing;
 using NeuroValet.StateData;
-using NeuroValet.Utils;
+using NeuroValet.Overrides;
 using System;
 using System.Collections;
 using System.Text;
@@ -34,16 +34,15 @@ public class NeuroValet : BaseUnityPlugin
 
     private void Awake()
     {
+        Logger = base.Logger;
+
         configWebSocketUrl = Config.Bind("NeuroSdk",                // The section under which the option is shown
                                          "WebSocket",               // The key of the configuration option in the configuration file
                                          "ws://localhost:8000",     // default value
                                          "Neuro SDK's Web Socket"); // Description
+        ClockOverrides.Initialize(Config, Logger);
 
         Harmony.CreateAndPatchAll(typeof(MouseSimulator).Assembly, MyPluginInfo.PLUGIN_GUID);
-
-        // Plugin startup logic
-        Logger = base.Logger;
-        Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
 
         // Load mouse debug texture
         string pluginDir = System.IO.Path.GetDirectoryName(Info.Location);
@@ -52,6 +51,8 @@ public class NeuroValet : BaseUnityPlugin
 
         actionManager = new ActionManager(Logger);
         stateReporter = new StateReporter(Logger);
+
+        Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
 
     private void Start()
