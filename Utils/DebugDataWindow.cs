@@ -145,11 +145,11 @@ public class DebugDataWindow
 
         StringBuilder availableActions = new StringBuilder();
         availableActions.Append($"Can Attend: {player.canAttendToFogg}\n");
-        availableActions.Append($"Can beg for money: {player.canBeg}\n");
+        availableActions.Append($"Can beg for money: {(player.currentCity != null ? player.canBeg : false)}\n"); // only available in city
         availableActions.Append($"Can Skip Hour: {player.canSkipHour}\n");
-        availableActions.Append($"Can stay at hotel: {player.canStayInHotel}\n");
+        availableActions.Append($"Can stay at hotel: {(player.currentCity != null ? player.canStayInHotel : false)}\n");
         availableActions.Append($"Can Visit Market: {player.currentCityHasMarket}\n");
-        availableActions.Append($"Can Visit Bank: {player.bankIsAvailable}\n");
+        availableActions.Append($"Can Visit Bank: {(player.currentCity != null ? player.bankIsAvailable : false)}\n");
 
         // Note player.canConverseToday throws if this condition is not met
         if (this.player.converseCharacterData != null)
@@ -191,7 +191,7 @@ public class DebugDataWindow
         journeysData.Append($"Available Cities: {player.availableDestinationCities.Count}\n");
         journeysData.Append($"Custom Journeys: {gameInfo.customJourneys.customJourneys.Count}\n");
         journeysData.Append($"Number of Completions: {gameInfo.numberOfCompletions}\n");
-        journeysData.Append($"Number of visible journeys: {player.visibleJourneysWorldwide.Count}");
+        journeysData.Append($"Number of visible journeys: {player.visibleJourneysWorldwide.Count}\n");
         journeysData.Append($"Journeys Now: {player.journeysAvailableToLeaveNow.Count}\n");
         foreach (var journey in player.journeysAvailableToLeaveNow)
         {
@@ -223,17 +223,10 @@ public class DebugDataWindow
         marketReport.Append($"Market Name: {player.currentCity.market.marketName}\n");
         if (market.sellsCases)
         {
-            bool canBuy = player.money.pounds > float.Parse(market.casePrice);
+            var marketCasePrice = GameData.Static.markets.PriceOfSuitcaseInMarket(player.currentCity);
+            bool canBuy = player.money > marketCasePrice;
 
-            GUILayout.BeginHorizontal();
-            GUI.enabled = canBuy; // Enable or disable the button based on the condition
-            if (GUILayout.Button($"Buy case - {market.casePrice}", GUILayout.Width(300)))
-            {
-                player.BuyAndAddSuitcase(new Suitcase());
-            }
-            GUI.enabled = true; // Re-enable GUI for other elements
-            GUILayout.EndHorizontal();
-            marketReport.Append($"Buy case for {market.casePrice}.\n");
+            marketReport.Append($"Buy case for {marketCasePrice.pounds}£.\n");
         }
         else
         {
