@@ -26,14 +26,35 @@ namespace NeuroValet.ViewsParsers
             _storyView = (StoryView)GameViews.Static.storyView;
         }
 
-        public void ExecuteAction(INeuroAction action)
+        public List<INeuroAction> GetPossibleActions()
         {
             throw new NotImplementedException();
         }
 
-        public List<INeuroAction> GetPossibleActions()
+        public bool HasAction(int actionIndex)
         {
-            throw new NotImplementedException();
+            // Check if there is a 
+            if (IsStoryVisible())
+            {
+                StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
+                IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
+
+                // Is possible to select this choice?
+                // TODO - figure if action index is starting from 0 or 1 (button presses do start from 1)
+                if (choices.Count > 0 && choices.Count > actionIndex)
+                {
+                    return true;
+                }
+                // Is 'continue' choice?
+                // If there are no choices, we can assume the "Finish Story" choice is available
+                else if (choices.Count == 0 && actionIndex == 1)
+                {
+                    return true;
+                }
+                return choices != null && actionIndex >= 0 && actionIndex < choices.Count;
+            }
+
+            return false; // no story data for now
         }
 
         public bool IsStoryVisible()
@@ -42,7 +63,7 @@ namespace NeuroValet.ViewsParsers
             {
                 // Attempt to reinitialize the StoryView if it is null
                 _storyView = (StoryView)GameViews.Static.storyView;
-                return false; // no data yet, maybe next time
+                return _storyView != null && _storyView.isVisible;
             }
             else
             {
@@ -52,15 +73,9 @@ namespace NeuroValet.ViewsParsers
 
         public string GetStoryName()
         {
-            if (_storyView == null)
+            if (IsStoryVisible())
             {
-                // Attempt to reinitialize the StoryView if it is null
-                _storyView = (StoryView)GameViews.Static.storyView;
-                return ""; // no data yet, maybe next time
-            }
-            else if (_storyView.isVisible)
-            {
-                return _storyView.story.name ?? ""; // Return the story name if available
+                return _storyView.story?.name ?? ""; // Return the story name if available
             }
             else
             {
@@ -70,13 +85,7 @@ namespace NeuroValet.ViewsParsers
 
         public string GetStoryText()
         {
-            if (_storyView == null)
-            {
-                // Attempt to reinitialize the StoryView if it is null
-                _storyView = (StoryView)GameViews.Static.storyView;
-                return ""; // no data yet, maybe next time
-            }
-            else if (_storyView.isVisible)
+            if (IsStoryVisible())
             {
                 StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
                 return contents?.currentFlowText ?? "";
@@ -89,21 +98,24 @@ namespace NeuroValet.ViewsParsers
 
         public List<ChoiceData> GetAvailableChoices()
         {
-            if (_storyView == null)
-            {
-                // Attempt to reinitialize the StoryView if it is null
-                _storyView = (StoryView)GameViews.Static.storyView;
-                return null; // no data yet, maybe next time
-            }
-            else if (_storyView.isVisible)
+            if (IsStoryVisible())
             {
                 StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
                 IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
                 List<ChoiceData> choicesResult = new List<ChoiceData>();
 
-                foreach (var choice in choices)
+                // If there are no choices but the story is still going, we can assume the "Continue" (=finish story?) choice is available
+                if (choices.Count == 0)
                 {
-                    choicesResult.Add(new ChoiceData { ChoiceIndex = choice.choiceIndex, ChoiceText = choice.sentenceElement.text });
+                    // only continue element is available probabaly, add it as the single available choice
+                    choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)" }); // TODO - will neuro say something? this should be silent...
+                }
+                else
+                {
+                    foreach (var choice in choices)
+                    {
+                        choicesResult.Add(new ChoiceData { ChoiceIndex = choice.choiceIndex, ChoiceText = choice.sentenceElement.text });
+                    }
                 }
 
                 return choicesResult;

@@ -15,6 +15,5 @@ namespace NeuroValet.ViewsParsers
     internal interface IViewParser
     {
         List<INeuroAction> GetPossibleActions();
-        void ExecuteAction(INeuroAction action);
     }
 }

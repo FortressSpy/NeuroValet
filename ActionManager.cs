@@ -1,5 +1,7 @@
 ﻿using BepInEx.Logging;
+using GameViews;
 using NeuroSdk.Actions;
+using NeuroValet.ViewsParsers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,17 +22,31 @@ namespace NeuroValet
             public bool IsContextSilent;
         }
 
-        private ManualLogSource logger;
+        private readonly ManualLogSource logger;
+        private readonly StoryViewParser storyView;
 
         public ActionManager(ManualLogSource logger)
         {
             this.logger = logger;
+            this.storyView = StoryViewParser.Instance;
         }
 
         // TODO - this should get state data as a parameter.
         public PossibleActions GetPossibleActions() 
-        { 
-            throw new NotImplementedException(); 
+        {
+            PossibleActions possibleActions = new PossibleActions();
+
+            // Go over the various View Parsers in order of priority to get the possible actions
+            if (storyView.IsStoryVisible())
+            {
+                var actions = storyView.GetPossibleActions(); 
+                if (actions.Count > 0)
+                {
+                    possibleActions.Actions = actions;
+                    possibleActions.Context = storyView.GetStoryText() + "(You have to choose a response to this)"; // TODO - do I need this prompt to explain to neuro that she is choosing a response?
+                    possibleActions.IsContextSilent = false;
+                }
+            }
         }
         public void ExecuteAction(INeuroAction action)
         {
