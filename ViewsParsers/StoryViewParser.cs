@@ -2,6 +2,7 @@
 using GameViews.Story;
 using NeuroSdk.Actions;
 using NeuroValet.Actions;
+using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -28,7 +29,7 @@ namespace NeuroValet.ViewsParsers
             _storyView = (StoryView)GameViews.Static.storyView;
         }
 
-        public List<INeuroAction> GetPossibleActions(ManualLogSource logger)
+        public List<INeuroAction> GetPossibleActions(GameStateData stateData, ManualLogSource logger)
         {
             List<INeuroAction> actions = new List<INeuroAction>();
             if (IsStoryVisible())

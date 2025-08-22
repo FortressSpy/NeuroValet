@@ -1,10 +1,6 @@
 ﻿using BepInEx.Logging;
 using NeuroValet.StateData;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NeuroValet.ViewsParsers;
 
 namespace NeuroValet
 {
@@ -15,14 +11,33 @@ namespace NeuroValet
     {
         private ManualLogSource logger;
 
+        // Most data is gathered from game object classes, with the exception of Story data which is parsed from the StoryView.
+        StoryViewParser storyViewParser;
+
         public StateReporter(ManualLogSource logger)
         {
             this.logger = logger;
+            storyViewParser = StoryViewParser.Instance;
         }
 
-        public GameState GetGameState()
+        public GameStateData GetGameStateData()
         {
-            throw new NotImplementedException();
+            GameStateData gameStateData = new GameStateData
+            {
+                // Player = GetPlayerData(),
+                // BasicData = GetBasicData(),
+                // Clock = GetClockData(),
+                // Luggage = GetLuggageData(),
+                // Journey = GetJourneyData(),
+                Story = new StoryData
+                {
+                    IsVisible = storyViewParser.IsStoryVisible(),
+                    StoryName = storyViewParser.GetStoryName(),
+                    Text = storyViewParser.GetStoryText(),
+                    Choices = storyViewParser.GetAvailableChoices()
+                }
+            };
+            return gameStateData;
         }
     }
 }

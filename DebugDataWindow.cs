@@ -254,46 +254,47 @@ public class DebugDataWindow
 
     private string GetStoryData()
     {
-        GameState gameState = new GameState();
-        GameStateData gameStateData = gameState.GetGameStateData();
-
-        if (!gameStateData.Story.IsVisible)
-        {
-            return "Story data not available or story view is not visible.";
-        }
-
-        StringBuilder storyData = new StringBuilder();
-        storyData.Append($"<b>{gameStateData.Story.StoryName}</b>\n");
-        storyData.Append($"{gameStateData.Story.Text}\n");
-
-        if (gameStateData.Story.Choices != null)
-        {
-            storyData.Append($"Choices: \n");
-            foreach (var choice in gameStateData.Story.Choices)
-            {
-                storyData.Append($"  {choice.ChoiceIndex}: {choice.ChoiceText}\n");
-            }
-        }
-        else
-        {
-            storyData.Append("No choices available.\n");
-        }
-
-            //if (story == null)
-            //    return "Story data not available.";
-
-            //StringBuilder storyData = new StringBuilder();
-            //storyData.Append($"Story Name: {story.name}\n");
-            //storyData.Append($"Finished: {story.IsFinished}\n");
-            //storyData.Append($"Num Of Chunks: {story.state?.NumberOfChunks ?? -1}\n");
-
-            //storyData.Append($"Latest chunk options count: {story.state?.LatestChunk?.Options?.Count ?? 0}\n");
-            //for (int i = 0; i < story.state?.LatestChunk?.Options?.Count; i++)
-            //{
-            //    storyData.Append($"  Option {i}: {story.state?.LatestChunk?.Options[i].title}\n");
-            //}
-
-        return storyData.ToString();
+        return "Not Implemented";
+        //GameState gameState = new GameState();
+        //GameStateData gameStateData = gameState.GetGameStateData();
+        //
+        //if (!gameStateData.Story.IsVisible)
+        //{
+        //    return "Story data not available or story view is not visible.";
+        //}
+        //
+        //StringBuilder storyData = new StringBuilder();
+        //storyData.Append($"<b>{gameStateData.Story.StoryName}</b>\n");
+        //storyData.Append($"{gameStateData.Story.Text}\n");
+        //
+        //if (gameStateData.Story.Choices != null)
+        //{
+        //    storyData.Append($"Choices: \n");
+        //    foreach (var choice in gameStateData.Story.Choices)
+        //    {
+        //        storyData.Append($"  {choice.ChoiceIndex}: {choice.ChoiceText}\n");
+        //    }
+        //}
+        //else
+        //{
+        //    storyData.Append("No choices available.\n");
+        //}
+        //
+        //    //if (story == null)
+        //    //    return "Story data not available.";
+        //
+        //    //StringBuilder storyData = new StringBuilder();
+        //    //storyData.Append($"Story Name: {story.name}\n");
+        //    //storyData.Append($"Finished: {story.IsFinished}\n");
+        //    //storyData.Append($"Num Of Chunks: {story.state?.NumberOfChunks ?? -1}\n");
+        //
+        //    //storyData.Append($"Latest chunk options count: {story.state?.LatestChunk?.Options?.Count ?? 0}\n");
+        //    //for (int i = 0; i < story.state?.LatestChunk?.Options?.Count; i++)
+        //    //{
+        //    //    storyData.Append($"  Option {i}: {story.state?.LatestChunk?.Options[i].title}\n");
+        //    //}
+        //
+        //return storyData.ToString();
     }
 
     private string GetLuggageData()

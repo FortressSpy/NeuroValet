@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using GameViews;
 using NeuroSdk.Actions;
+using NeuroValet.StateData;
 using NeuroValet.ViewsParsers;
 using System;
 using System.Collections.Generic;
@@ -29,26 +30,40 @@ namespace NeuroValet
         }
 
         private readonly ManualLogSource logger;
-        private readonly StoryViewParser storyView;
 
         public ActionManager(ManualLogSource logger)
         {
             this.logger = logger;
-            this.storyView = StoryViewParser.Instance;
         }
 
-        public PossibleActions GetPossibleActions() 
+        public PossibleActions GetPossibleActions(GameStateData stateData) 
         {
             PossibleActions possibleActions = new PossibleActions();
 
             // Go over the various View Parsers in order of priority to get the possible actions
-            if (storyView.IsStoryVisible())
+            // Note some views are mutually exclusive, while others can be active at the same time, allowing multiple actions to be available
+            // TODO - need to figure out how to handle this priority. Maybe the views themselves?
+            if (StoryViewParser.Instance.IsStoryVisible())
             {
-                var actions = storyView.GetPossibleActions(logger);
+                var actions = StoryViewParser.Instance.GetPossibleActions(stateData, logger);
                 possibleActions.Actions = actions;
-                possibleActions.Context = storyView.GetStoryText() + " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
+                possibleActions.Context = StoryViewParser.Instance.GetStoryText() + " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
                 possibleActions.IsContextSilent = false;
-                possibleActions.IsForcedAction = false;
+            }
+            // TODO - globe view should have two actions - focus on player. Look back at the globe. 
+            // TODO - maybe even more - looking at globe allows looking at possible journeys
+            else if (GlobeViewParser.Instance.CanFocusOnPosition())
+            {
+                var actions = GlobeViewParser.Instance.GetPossibleActions(stateData, logger);
+                possibleActions.Actions = actions;
+                possibleActions.Context = "You are looking at the globe. You can choose to focus on your current location to do more actions";
+                possibleActions.IsContextSilent = false;
+            }
+            else
+            {
+                // No known view is active, so no actions available
+                possibleActions.Context = "No actions are currently available.";
+                possibleActions.IsContextSilent = true;
             }
 
             return possibleActions;

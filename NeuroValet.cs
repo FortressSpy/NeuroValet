@@ -109,10 +109,10 @@ public class NeuroValet : BaseUnityPlugin
         {
             // Gather game state data and check if anything changed that requires updating Neuro about
             // TODO how do I check if game state changed enough that I should update neuro's context? maybe gather everytime but update neuro only if something changed?
-            //var gameState = stateReporter.GetGameState();
+            var gameState = stateReporter.GetGameStateData();
 
             // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
-            var possibleActions = actionManager.GetPossibleActions();
+            var possibleActions = actionManager.GetPossibleActions(gameState);
             if (HasNewActions(possibleActions))
             {
                 // TODO - send context to neuro? Might want to do that more often than just when actions change though so she is more aware of the timer?
