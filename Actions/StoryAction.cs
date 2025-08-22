@@ -1,63 +1,50 @@
-﻿using NeuroSdk;
+﻿using BepInEx.Logging;
+using NeuroSdk;
 using NeuroSdk.Actions;
 using NeuroSdk.Json;
 using NeuroSdk.Websocket;
 using NeuroValet.ViewsParsers;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static NeuroValet.StateData.StoryData;
 
 namespace NeuroValet.Actions
 {
-    internal class StoryAction : NeuroActionS<int>
+    internal class StoryAction : NeuroAction
     {
-        private readonly string _choiceText;
-        private readonly int _choiceIndex;
+        private readonly ChoiceData _choiceData;
 
-        public StoryAction(string choiceText, int choiceIndex)
+        private ManualLogSource logger;
+
+        public StoryAction(ChoiceData choiceData, ManualLogSource logger)
         {
-            _choiceText = choiceText;
-            _choiceIndex = choiceIndex;
+            _choiceData = choiceData;
+            this.logger = logger;
         }
 
-        public override string Name => "story_decision_" + _choiceIndex;
-        protected override string Description => _choiceText;
+        public override string Name => "story_decision_" + _choiceData.ChoiceIndex;
+        protected override string Description => _choiceData.ChoiceText;
 
         protected override JsonSchema Schema => new()
         {
-            Type = JsonSchemaType.Object,
-            Required = new List<string> { "index" },
-            Properties = new Dictionary<string, JsonSchema>
-            {
-                ["index"] = QJS.Type(JsonSchemaType.Integer)
-            }
         };
 
-        protected override void Execute(int? choiceIndex)
+        protected override void Execute()
         {
-            // TODO - need to implement pressing a key in the MouseSimulator. 
-            throw new NotImplementedException();
+            StoryViewParser.Instance.ExecuteAction(_choiceData);
         }
 
-        // TODO do I even need this choiceIndex param? if the action window saves the action object I might already have it in the _choiceIndex field.
-        protected override ExecutionResult Validate(ActionJData actionData, out int? choiceIndex)
+        protected override ExecutionResult Validate(ActionJData actionData)
         {
-            choiceIndex = actionData.Data?["index"]?.Value<int>();
+            logger.Log(LogLevel.Info, $"Validating StoryAction with index: {_choiceData.ChoiceIndex}. [{_choiceData.ChoiceText}].");
 
-            if (!choiceIndex.HasValue)
-            {
-                return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedMissingRequiredParameter.Format("index"));
-            }
-            else if (StoryViewParser.Instance.HasAction(choiceIndex))
+            if (StoryViewParser.Instance.HasAction(_choiceData.ChoiceIndex))
             {
                 return ExecutionResult.Success();
             }
             else
             {
-                return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedInvalidParameter.Format("index"));
+                // This shouldn't happen. Maybe had some timed stuff and action hasn't unregistered in time before neuro decided to do it
+                // Or user did some input outside neuro's control?
+                return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedUnregistered);
             }
         }
     }

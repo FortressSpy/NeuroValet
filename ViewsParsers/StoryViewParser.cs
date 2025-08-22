@@ -1,5 +1,7 @@
-﻿using GameViews.Story;
+﻿using BepInEx.Logging;
+using GameViews.Story;
 using NeuroSdk.Actions;
+using NeuroValet.Actions;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -26,9 +28,36 @@ namespace NeuroValet.ViewsParsers
             _storyView = (StoryView)GameViews.Static.storyView;
         }
 
-        public List<INeuroAction> GetPossibleActions()
+        public List<INeuroAction> GetPossibleActions(ManualLogSource logger)
         {
-            throw new NotImplementedException();
+            List<INeuroAction> actions = new List<INeuroAction>();
+            if (IsStoryVisible())
+            {
+                var choices = GetAvailableChoices();
+
+                foreach (var choice in choices)
+                {
+                    actions.Add(new StoryAction(choice, logger));
+                }
+            }
+            return actions;
+        }
+
+        public void ExecuteAction(ChoiceData choice)
+        {
+            if (HasAction(choice.ChoiceIndex))
+            {
+                StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
+
+                if (choice.IsContinueChoice)
+                {
+                    contents.OnContinueSelected();
+                }
+                else
+                {
+                    contents.OnChoiceSelected(choice.ChoiceIndex);
+                }
+            }
         }
 
         public bool HasAction(int actionIndex)
@@ -40,13 +69,11 @@ namespace NeuroValet.ViewsParsers
                 IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
 
                 // Is possible to select this choice?
-                // TODO - figure if action index is starting from 0 or 1 (button presses do start from 1)
                 if (choices.Count > 0 && choices.Count > actionIndex)
                 {
                     return true;
                 }
                 // Is 'continue' choice?
-                // If there are no choices, we can assume the "Finish Story" choice is available
                 else if (choices.Count == 0 && actionIndex == 1)
                 {
                     return true;
@@ -108,13 +135,13 @@ namespace NeuroValet.ViewsParsers
                 if (choices.Count == 0)
                 {
                     // only continue element is available probabaly, add it as the single available choice
-                    choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)" }); // TODO - will neuro say something? this should be silent...
+                    choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)", IsContinueChoice = true }); // TODO - will neuro say something? this should be silent...
                 }
                 else
                 {
                     foreach (var choice in choices)
                     {
-                        choicesResult.Add(new ChoiceData { ChoiceIndex = choice.choiceIndex, ChoiceText = choice.sentenceElement.text });
+                        choicesResult.Add(new ChoiceData { ChoiceIndex = choice.choiceIndex, ChoiceText = choice.sentenceElement.text, IsContinueChoice = false });
                     }
                 }
 

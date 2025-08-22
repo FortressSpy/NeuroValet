@@ -12,6 +12,7 @@ namespace NeuroValet.StateData
         {
             public string ChoiceText { get; set; }
             public int ChoiceIndex { get; set; }
+            public bool IsContinueChoice { get; set; }
         }
 
         public bool IsVisible { get; set; }

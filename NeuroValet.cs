@@ -25,12 +25,13 @@ public class NeuroValet : BaseUnityPlugin
     private DebugDataWindow gameDataForm = new DebugDataWindow();
     internal static new ManualLogSource Logger;
 
-    private Game.Game gameInfo;
-    private GameData.Clock clock;
     private bool isReady = false;
 
     private ActionManager actionManager;
     private StateReporter stateReporter;
+
+    private ActionManager.PossibleActions neuroCurrentActions;
+    private NeuroSdk.Actions.ActionWindow currentActionWindow;
 
     private void Awake()
     {
@@ -62,10 +63,11 @@ public class NeuroValet : BaseUnityPlugin
         {
             Environment.SetEnvironmentVariable("NEURO_SDK_WS_URL", configWebSocketUrl.Value);
 
+            StartCoroutine(ReportGameStateToNeuro());
+
             NeuroSdkSetup.Initialize("80 Days");
             isReady = true;
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} launched. Web socket set to: {configWebSocketUrl.Value}");
-            StartCoroutine(GatherGameData());
 
             // TODO - improve the context. Ask how much should be here (explanation of the game mechanics? world? tips (like how much money you generally need)?
             Context.Send("You are playing as Passepartout, valet to Phileas Fogg. He made a bet to travel the world in 80 days or less, starting from London.", true);
@@ -83,48 +85,69 @@ public class NeuroValet : BaseUnityPlugin
         // TODO - need to gather game state and send it as context?
         // TODO - need to send first context, teaching how to play the game (on start?)
         // TODO - need to understand when I trigger new action report / new context report. on every action maybe? can't do it immediately though, because actions take time to execute sometimes.
+        //KeyboardSimulator.ReleaseKeys();
+        CheckDebugInputs();
+    }
 
+    private void CheckDebugInputs()
+    {
         // Toggle the visibility of the debug form when F1 is pressed
         if (Input.GetKeyDown(KeyCode.F1))
         {
             gameDataForm.ToggleDebugWindow();
         }
-
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            MouseSimulator.ReleaseMousePosition();
-        }
-        if (Input.GetKeyDown(KeyCode.F3))
-        {
-            MouseSimulator.SetMousePosition(new Vector3(500, 500, 0), Logger);
-        }
-        else if (Input.GetKeyDown(KeyCode.F4))
-        {
-            MouseSimulator.SetMousePosition(new Vector3(200, 200, 0), Logger);
+            Game.Static.game.globeControls.FocusOnPlayer();
         }
     }
 
     // Once a second, Gather game state data
-    private IEnumerator GatherGameData()
+    private IEnumerator ReportGameStateToNeuro()
     {
         while (true)
         {
-            if (gameInfo == null)
-            {
-                Logger.LogWarning("Game info not found! Attempting to find...");
-                gameInfo = FindObjectOfType<Game.Game>();
-            }
-            if (clock == null)
-            {
-                clock = (GameData.Clock)GameData.Static.clock;
-            }
+            // Gather game state data and check if anything changed that requires updating Neuro about
+            // TODO how do I check if game state changed enough that I should update neuro's context? maybe gather everytime but update neuro only if something changed?
+            //var gameState = stateReporter.GetGameState();
 
-            gameDataForm.SetGameInfo(gameInfo, clock);
-            gameDataForm.SetPlayer(gameInfo?.player);
-            gameDataForm.SetStory(gameInfo?.story);
+            // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
+            var possibleActions = actionManager.GetPossibleActions();
+            if (HasNewActions(possibleActions))
+            {
+                // TODO - send context to neuro? Might want to do that more often than just when actions change though so she is more aware of the timer?
+                // TODO - also need to consider if there are special conditions that cause custom context (like game start, game end, first city, first market...)
+
+                // If there are new actions, prepare the action window for Neuro
+                PrepareActionWindow(possibleActions);
+            }
 
             yield return new WaitForSeconds(1f);
         }
+    }
+
+    private bool HasNewActions(ActionManager.PossibleActions possibleActions)
+    {
+        if (neuroCurrentActions.Actions == null || neuroCurrentActions.Actions.Count != possibleActions.Actions.Count)
+        {
+            return true;
+        }
+
+        if (currentActionWindow.CurrentState == ActionWindow.State.Ended)
+        {
+            return true;
+        }
+
+        // Compare each action in the list to see if there any difference between them
+        for (int i = 0; i < possibleActions.Actions.Count; i++)
+        {
+            if (neuroCurrentActions.Actions[i].Equals(possibleActions.Actions[i]))
+            {
+                return true; // New action found
+            }
+        }
+
+        return false;
     }
 
     void OnGUI()
@@ -133,19 +156,39 @@ public class NeuroValet : BaseUnityPlugin
         MouseSimulator.DrawCursor();
     }
 
-    public void PrepareActionWindow()
+    private void PrepareActionWindow(ActionManager.PossibleActions actionsInfo)
     {
-        NeuroSdk.Actions.ActionWindow actionWindow = ActionWindow.Create(this.gameObject);
-        var actionsInfo = actionManager.GetPossibleActions();
-        if (!actionsInfo.Context.IsNullOrEmpty())
+        // Remember the new actions so we can compare and see when they've changed
+        neuroCurrentActions = actionsInfo;
+
+        // Make sure to disable previous action window if it is still active
+        if (currentActionWindow != null && currentActionWindow.CurrentState != ActionWindow.State.Ended)
         {
-            actionWindow.SetContext(actionsInfo.Context, actionsInfo.IsContextSilent);
+            currentActionWindow.End();
         }
 
+        // Create a new action window and set the context if provided
+        currentActionWindow = ActionWindow.Create(this.gameObject);
+        if (!actionsInfo.Context.IsNullOrEmpty())
+        {
+            currentActionWindow.SetContext(actionsInfo.Context, actionsInfo.IsContextSilent);
+        }
+
+        if (actionsInfo.IsForcedAction)
+        {
+            currentActionWindow.SetForce(0, "(There are optional actions you can do right now but have limited time to do)", "", true);
+        }
+
+        // Add the possible actions to the action window
         foreach (INeuroAction action in actionsInfo.Actions)
         {
-            actionWindow.AddAction(action);
+            currentActionWindow.AddAction(action);
         }
-        actionWindow.Register();
+
+        // Register the action window so it can be used by Neuro. Note it is only relevant if there are any actions
+        if (actionsInfo.Actions.Count > 0)
+        {
+            currentActionWindow.Register();
+        }
     }
 }

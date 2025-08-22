@@ -20,6 +20,12 @@ namespace NeuroValet
             public List<INeuroAction> Actions;
             public string Context;
             public bool IsContextSilent;
+            public bool IsForcedAction;
+
+            public PossibleActions()
+            {
+                Actions = new List<INeuroAction>();
+            }
         }
 
         private readonly ManualLogSource logger;
@@ -31,7 +37,6 @@ namespace NeuroValet
             this.storyView = StoryViewParser.Instance;
         }
 
-        // TODO - this should get state data as a parameter.
         public PossibleActions GetPossibleActions() 
         {
             PossibleActions possibleActions = new PossibleActions();
@@ -39,18 +44,14 @@ namespace NeuroValet
             // Go over the various View Parsers in order of priority to get the possible actions
             if (storyView.IsStoryVisible())
             {
-                var actions = storyView.GetPossibleActions(); 
-                if (actions.Count > 0)
-                {
-                    possibleActions.Actions = actions;
-                    possibleActions.Context = storyView.GetStoryText() + "(You have to choose a response to this)"; // TODO - do I need this prompt to explain to neuro that she is choosing a response?
-                    possibleActions.IsContextSilent = false;
-                }
+                var actions = storyView.GetPossibleActions(logger);
+                possibleActions.Actions = actions;
+                possibleActions.Context = storyView.GetStoryText() + " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
+                possibleActions.IsContextSilent = false;
+                possibleActions.IsForcedAction = false;
             }
-        }
-        public void ExecuteAction(INeuroAction action)
-        {
-            throw new NotImplementedException();
+
+            return possibleActions;
         }
     }
 }
