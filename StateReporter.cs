@@ -40,7 +40,7 @@ namespace NeuroValet
 
             return new GeneralGameData
             {
-                CurrentTime = $"{clock.currentTime.hoursPart.hours}:{clock.currentTime.minutesPart.minutes}",
+                CurrentTime = clock != null ? $"{clock.currentTime.hoursPart.hours}:{clock.currentTime.minutesPart.minutes}" : "",
                 CurrentDayNumber = player?.dayNumberAdjustedForDateLine ?? 0,
                 DayOfWeek = player?.dayOfWeekName,
                 IsNightTime = player?.nightActive ?? false,
@@ -96,6 +96,8 @@ namespace NeuroValet
                 cityData.HasMarket = city.hasMarket;
                 cityData.HasBank = city.hasBank;
                 cityData.IsFakeCity = city.isFakeCity;
+                cityData.BankTransferInProgress = player.bankTransferInProgress;
+                cityData.BankFundsReady = player.bankFundsReady;
             }
             return cityData;
         }

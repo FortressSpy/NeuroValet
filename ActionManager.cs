@@ -56,7 +56,7 @@ namespace NeuroValet
             bool foundActions = false;
             int i = 0;
 
-            while (foundActions && viewParsers.Count < i)
+            while (!foundActions && viewParsers.Count > i)
             {
                 if (viewParsers[i].IsViewRelevant())
                 {

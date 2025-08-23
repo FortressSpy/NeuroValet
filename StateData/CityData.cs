@@ -13,5 +13,7 @@ namespace NeuroValet.StateData
         public bool HasMarket { get; set; }
         public bool HasBank { get; set; }
         public bool IsFakeCity { get; set; }
+        public bool BankTransferInProgress { get; set; }
+        public bool BankFundsReady { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using BepInEx.Logging;
 using GameViews.Cloud;
-using GameViews.Story;
+using NeuroValet.Actions;
 using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
@@ -20,9 +20,9 @@ namespace NeuroValet.ViewsParsers
         public static CloudViewParser Instance => _instance.Value;
 
         // Get the private field info
-        FieldInfo iconsField = typeof(CloudViewIcons)
+        FieldInfo iconsField = typeof(CloudView)
             .GetField("_icons", BindingFlags.NonPublic | BindingFlags.Instance);
-        FieldInfo iconsListField = typeof(IList<Icon>)
+        FieldInfo iconsListField = typeof(CloudViewIcons)
             .GetField("_icons", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public ActionManager.PossibleActions GetPossibleActions(ManualLogSource logger)
@@ -84,40 +84,96 @@ namespace NeuroValet.ViewsParsers
             CloudViewIcons icons = (CloudViewIcons)iconsField.GetValue(cloudView);
             IList<Icon> iconsList = (IList<Icon>)iconsListField.GetValue(icons);
 
-            for (int i = 0; i< iconsList.Count; i++)
+            for (int i = 0; i < iconsList.Count; i++)
             {
                 var icon = iconsList[i];
                 string iconName = icon.name.ToLower();
                 if (iconName == "pack" || iconName == "market")
                 {
-                    // Add market action
-                    if (icon.available)
+                    if (IsActionPossible(icon))
                     {
-
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon,
+                            (iconName == "pack") ? "Pack initial items for your trip" : "Go buy and sell items on the market"));
                     }
                     else
                     {
-                        // add context explaining why it's not open
+                        context.AppendLine($"This city has a market, but it is not open right now. {icon.subtitle}");
                     }
                 }
-                else if (iconName == "bank" || iconName == "beg")
+                else if (iconName == "bank")
                 {
-                    // Add Bank action
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon,
+                            (currentStateData.City.BankFundsReady ?
+                            "Go to the bank to collect the money you've requested." : 
+                            "Go to a bank to get additional money, but will have to wait a few days in the city before it arrives.\n") +                            
+                            $"Visiting the bank will take 2 hours, and can only be done during work hours."));
+                    }
+                    else
+                    {
+                        context.AppendLine($"This city has a bank, but it is not open right now. {icon.subtitle}");
+                    }
+                }
+                else if (iconName == "beg")
+                {
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon,
+                            "Go beg for money on the streets. Will gain additional money but will take 8 hours"));
+                    }
                 }
                 else if (iconName == "return")
                 {
-                    // TODO - end game action
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon, "You've arrived back in London. Finish your journey."));
+                    }
                 }
                 else if (iconName == "begin")
                 {
-                    // TODO start game action. equal to plan?
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon, "Begin the first step on your trip around the world."));
+                    }
                 }
                 else if (iconName == "hotel" || iconName == "sleep")
                 {
-                    // TODO sleep action
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon,
+                            (iconName == "hotel") 
+                            ? "Spend the night in an hotel. +1 day and heal Fogg a bit" 
+                            : "Spend the night. +1 day."));
+                    }
                 }
                 else if (iconName == "depart" || iconName == "plan")
-                { 
+                {
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon, "View the various routes you can take from here, and possibly depart on one of them"));
+                    }
+                }
+                else if (iconName == "explore")
+                {
+                    if (IsActionPossible(icon))
+                    {
+                        possibleActions.Actions.Add(new CityAction(
+                            i, icon,
+                            "Explore the city in search of new information, journeys, items, quests and secrets.\n" +
+                            $"Exploring the city will take 4 hours."));
+                    }
+                    else
+                    {
+                        context.AppendLine($"Can explore this city, but not right now. ({icon.subtitle})");
+                    }
                 }
                 else
                 {
@@ -134,6 +190,11 @@ namespace NeuroValet.ViewsParsers
             possibleActions.IsContextSilent = true;
 
             return possibleActions;
+        }
+
+        private bool IsActionPossible(GameViews.Cloud.Icon icon)
+        {
+            return (icon.available && !icon.ignoreClicks && icon.fadeAlpha > 0f && icon.iconData.clickEventName != null);
         }
     }
 }
