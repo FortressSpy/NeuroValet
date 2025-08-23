@@ -51,7 +51,7 @@ public class NeuroValet : BaseUnityPlugin
         MouseSimulator.LoadCursorTexture(cursorPath);
 
         actionManager = new ActionManager(Logger);
-        stateReporter = new StateReporter(Logger);
+        stateReporter = StateReporter.Instance;
 
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
@@ -107,12 +107,13 @@ public class NeuroValet : BaseUnityPlugin
     {
         while (true)
         {
-            // Gather game state data and check if anything changed that requires updating Neuro about
-            // TODO how do I check if game state changed enough that I should update neuro's context? maybe gather everytime but update neuro only if something changed?
-            var gameState = stateReporter.GetGameStateData();
+            // Gather game state data
+            StateReporter.Instance.UpdateGameStateData();
+
+            // TODO - consider updating neuro's context? when?
 
             // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
-            var possibleActions = actionManager.GetPossibleActions(gameState);
+            var possibleActions = actionManager.GetPossibleActions();
             if (HasNewActions(possibleActions))
             {
                 // TODO - send context to neuro? Might want to do that more often than just when actions change though so she is more aware of the timer?

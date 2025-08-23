@@ -1,13 +1,7 @@
 ﻿using BepInEx.Logging;
-using GameViews;
 using NeuroSdk.Actions;
-using NeuroValet.StateData;
 using NeuroValet.ViewsParsers;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NeuroValet
 {
@@ -30,43 +24,43 @@ namespace NeuroValet
         }
 
         private readonly ManualLogSource logger;
+        private List<IViewParser> viewParsers;
 
         public ActionManager(ManualLogSource logger)
         {
             this.logger = logger;
+
+            // Order of view parsers is important, as the first valid one will be used.
+            // So add parsers in order of priority
+            viewParsers = new List<IViewParser>
+            {
+                StoryViewParser.Instance,
+                GlobeViewParser.Instance,
+            };
         }
 
-        public PossibleActions GetPossibleActions(GameStateData stateData) 
+        public PossibleActions GetPossibleActions() 
         {
-            PossibleActions possibleActions = new PossibleActions();
+            PossibleActions actions = actions = new PossibleActions()
+            {
+                Actions = new List<INeuroAction>(),
+                Context = "No actions are currently available.",
+                IsContextSilent = true
+            };
+            bool foundActions = false;
+            int i = 0;
 
-            // Go over the various View Parsers in order of priority to get the possible actions
-            // Note some views are mutually exclusive, while others can be active at the same time, allowing multiple actions to be available
-            // TODO - need to figure out how to handle this priority. Maybe the views themselves?
-            if (StoryViewParser.Instance.IsStoryVisible())
+            while (foundActions && viewParsers.Count < i)
             {
-                var actions = StoryViewParser.Instance.GetPossibleActions(stateData, logger);
-                possibleActions.Actions = actions;
-                possibleActions.Context = StoryViewParser.Instance.GetStoryText() + " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
-                possibleActions.IsContextSilent = false;
-            }
-            // TODO - globe view should have two actions - focus on player. Look back at the globe. 
-            // TODO - maybe even more - looking at globe allows looking at possible journeys
-            else if (GlobeViewParser.Instance.CanFocusOnPosition())
-            {
-                var actions = GlobeViewParser.Instance.GetPossibleActions(stateData, logger);
-                possibleActions.Actions = actions;
-                possibleActions.Context = "You are looking at the globe. You can choose to focus on your current location to do more actions";
-                possibleActions.IsContextSilent = false;
-            }
-            else
-            {
-                // No known view is active, so no actions available
-                possibleActions.Context = "No actions are currently available.";
-                possibleActions.IsContextSilent = true;
+                if (viewParsers[i].IsViewRelevant())
+                {
+                    actions = viewParsers[i].GetPossibleActions(logger);
+                    foundActions = true;
+                }
+                i++;
             }
 
-            return possibleActions;
+            return actions;
         }
     }
 }

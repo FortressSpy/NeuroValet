@@ -1,11 +1,6 @@
 ﻿using BepInEx.Logging;
-using NeuroSdk.Actions;
-using NeuroValet.StateData;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using static NeuroValet.ActionManager;
 
 namespace NeuroValet.ViewsParsers
 {
@@ -16,6 +11,7 @@ namespace NeuroValet.ViewsParsers
     /// </summary>
     internal interface IViewParser
     {
-        List<INeuroAction> GetPossibleActions(GameStateData stateData, ManualLogSource logger);
+        PossibleActions GetPossibleActions(ManualLogSource logger);
+        bool IsViewRelevant();
     }
 }

@@ -3,11 +3,6 @@ using NeuroSdk.Actions;
 using NeuroSdk.Json;
 using NeuroSdk.Websocket;
 using NeuroValet.ViewsParsers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NeuroValet.Actions
 {
@@ -35,7 +30,7 @@ namespace NeuroValet.Actions
 
         protected override ExecutionResult Validate(ActionJData actionData)
         {
-            if (GlobeViewParser.Instance.CanFocusOnPosition())
+            if (GlobeViewParser.Instance.IsViewRelevant())
             {
                 return ExecutionResult.Success();
             }

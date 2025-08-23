@@ -6,6 +6,7 @@ using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using static NeuroValet.ActionManager;
 using static NeuroValet.Actions.StoryAction;
 
 namespace NeuroValet.ViewsParsers
@@ -29,19 +30,23 @@ namespace NeuroValet.ViewsParsers
             _storyView = (StoryView)GameViews.Static.storyView;
         }
 
-        public List<INeuroAction> GetPossibleActions(GameStateData stateData, ManualLogSource logger)
+        public PossibleActions GetPossibleActions(ManualLogSource logger)
         {
-            List<INeuroAction> actions = new List<INeuroAction>();
-            if (IsStoryVisible())
+            PossibleActions possibleActions = new PossibleActions();
+            possibleActions.Actions = new List<INeuroAction>();
+            if (IsViewRelevant()) // make sure the story view is still relevant, even though this was probably called before
             {
                 var choices = GetAvailableChoices();
 
                 foreach (var choice in choices)
                 {
-                    actions.Add(new StoryAction(choice, logger));
+                    possibleActions.Actions.Add(new StoryAction(choice, logger));
                 }
             }
-            return actions;
+
+            possibleActions.Context = StoryViewParser.Instance.GetStoryText() + " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
+            possibleActions.IsContextSilent = false;
+            return possibleActions;
         }
 
         public void ExecuteAction(ChoiceData choice)
@@ -63,18 +68,18 @@ namespace NeuroValet.ViewsParsers
 
         public bool HasAction(int actionIndex)
         {
-            // Check if there is a 
-            if (IsStoryVisible())
+            // Check if there is even a story going on right now
+            if (IsViewRelevant())
             {
                 StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
                 IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
 
-                // Is possible to select this choice?
+                // Is it possible to select this choice?
                 if (choices.Count > 0 && choices.Count > actionIndex)
                 {
                     return true;
                 }
-                // Is 'continue' choice?
+                // Is this a 'continue' choice?
                 else if (choices.Count == 0 && actionIndex == 1)
                 {
                     return true;
@@ -85,7 +90,8 @@ namespace NeuroValet.ViewsParsers
             return false; // no story data for now
         }
 
-        public bool IsStoryVisible()
+        // Is there a story going on right now?
+        public bool IsViewRelevant()
         {
             if (_storyView == null)
             {
@@ -99,59 +105,38 @@ namespace NeuroValet.ViewsParsers
             }
         }
 
-        public string GetStoryName()
+        private string GetStoryName()
         {
-            if (IsStoryVisible())
-            {
-                return _storyView.story?.name ?? ""; // Return the story name if available
-            }
-            else
-            {
-                return ""; // no story data for now
-            }
+            return _storyView.story?.name ?? ""; // Return the story name if available
         }
 
-        public string GetStoryText()
+        private string GetStoryText()
         {
-            if (IsStoryVisible())
-            {
-                StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
-                return contents?.currentFlowText ?? "";
-            }
-            else
-            {
-                return ""; // no story data for now
-            }
+            StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
+            return contents?.currentFlowText ?? "";
         }
 
-        public List<ChoiceData> GetAvailableChoices()
+        private List<ChoiceData> GetAvailableChoices()
         {
-            if (IsStoryVisible())
+            StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
+            IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
+            List<ChoiceData> choicesResult = new List<ChoiceData>();
+
+            // If there are no choices but the story is still going, we can assume the "Continue" (=finish story?) choice is available
+            if (choices.Count == 0)
             {
-                StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
-                IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
-                List<ChoiceData> choicesResult = new List<ChoiceData>();
-
-                // If there are no choices but the story is still going, we can assume the "Continue" (=finish story?) choice is available
-                if (choices.Count == 0)
-                {
-                    // only continue element is available probabaly, add it as the single available choice
-                    choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)", IsContinueChoice = true }); // TODO - will neuro say something? this should be silent...
-                }
-                else
-                {
-                    foreach (var choice in choices)
-                    {
-                        choicesResult.Add(new ChoiceData { ChoiceIndex = choice.choiceIndex, ChoiceText = choice.sentenceElement.text, IsContinueChoice = false });
-                    }
-                }
-
-                return choicesResult;
+                // only continue element is available probabaly, add it as the single available choice
+                choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)", IsContinueChoice = true }); // TODO - will neuro say something? this should be silent...
             }
             else
             {
-                return null; // no story data for now
+                foreach (var choice in choices)
+                {
+                    choicesResult.Add(new ChoiceData { ChoiceIndex = choice.choiceIndex, ChoiceText = choice.sentenceElement.text, IsContinueChoice = false });
+                }
             }
+
+            return choicesResult;
         }
     }
 }

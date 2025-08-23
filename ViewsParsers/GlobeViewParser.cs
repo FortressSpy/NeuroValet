@@ -5,6 +5,7 @@ using NeuroValet.Actions;
 using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
+using static NeuroValet.ActionManager;
 
 namespace NeuroValet.ViewsParsers
 {
@@ -14,16 +15,21 @@ namespace NeuroValet.ViewsParsers
         private static readonly Lazy<GlobeViewParser> _instance = new Lazy<GlobeViewParser>(() => new GlobeViewParser());
         public static GlobeViewParser Instance => _instance.Value;
 
-        public List<INeuroAction> GetPossibleActions(GameStateData stateData, ManualLogSource logger)
-        {
-            var actions = new List<INeuroAction>();
-            if (CanFocusOnPosition())
-            {
-                actions.Add(new EnterCityAction(""));
-            }
-            // TODO - other globe related actions -  Focusing on various available journeys. maybe focusing on other cities to see clues on them, especially if have any quests there?
+        private GlobeViewParser() { }
 
-            return actions;
+        public PossibleActions GetPossibleActions(ManualLogSource logger)
+        {
+            PossibleActions possibleActions = new PossibleActions();
+            // TODO - other globe related actions -  Focusing on various available journeys. maybe focusing on other cities to see clues on them, especially if have any quests there?
+            if (IsViewRelevant())
+            {
+                possibleActions.Actions.Add(new EnterCityAction(""));
+            }
+
+            possibleActions.Context = "You are looking at the globe. You can choose to focus on your current location to do more actions";
+            possibleActions.IsContextSilent = false;
+
+            return possibleActions;
         }
 
         public void FocusOnPlayer()
@@ -33,15 +39,16 @@ namespace NeuroValet.ViewsParsers
             Game.Static.game.globeControls.FocusOnPlayer();
         }
 
-        public bool CanFocusOnPosition()
+        // Is the globe visible and player can be focused on?
+        public bool IsViewRelevant()
         {
             // Check if the globe is viewable
             IGameViews gameViews = GameViews.Static.gameViews;
 
             if (gameViews == null) return false;
 
-            // TODO check if prologue....
             return
+                (!StateReporter.Instance.CurrentStateData.GeneralData.IsPrologueActive) &&
                 (!gameViews.settingsView?.isShown ?? true) &&
                 (!gameViews.converseView?.isShown ?? true) && 
                 (!gameViews.marketAndLuggageView?.isShown ?? true) && 

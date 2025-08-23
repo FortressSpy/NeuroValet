@@ -1,5 +1,5 @@
-﻿using BepInEx.Logging;
-using NeuroValet.StateData;
+﻿using NeuroValet.StateData;
+using System;
 
 namespace NeuroValet
 {
@@ -8,26 +8,28 @@ namespace NeuroValet
     /// </summary>
     internal class StateReporter
     {
-        private ManualLogSource logger;
+        // Implement a singleton pattern for the StateReporter
+        private static readonly Lazy<StateReporter> _instance = new Lazy<StateReporter>(() => new StateReporter());
+        public static StateReporter Instance => _instance.Value;
 
-        public StateReporter(ManualLogSource logger)
+        private GameStateData currentStateData;
+
+        private StateReporter()
         {
-            this.logger = logger;
+            CurrentStateData = new GameStateData();
         }
 
-        public GameStateData GetGameStateData()
+        public GameStateData CurrentStateData { get => currentStateData; private set => currentStateData = value; }
+
+        public void UpdateGameStateData()
         {
-            GameStateData gameStateData = new GameStateData
-            {
-                GeneralData = GetGeneralData(),
-                Player = GetPlayerData(),
-                City = GetCityData(),
-                // BasicData = GetBasicData(),
-                // Clock = GetClockData(),
-                // Luggage = GetLuggageData(),
-                // Journey = GetJourneyData(),
-            };
-            return gameStateData;
+            currentStateData.GeneralData = GetGeneralData();
+            currentStateData.Player = GetPlayerData();
+            currentStateData.City = GetCityData();
+            // currentStateData.BasicData = GetBasicData();
+            // currentStateData.Clock = GetClockData();
+            // currentStateData.Luggage = GetLuggageData();
+            // currentStateData.Journey = GetJourneyData();
         }
 
         private GeneralGameData GetGeneralData()
