@@ -10,13 +10,9 @@ namespace NeuroValet.ViewsParsers
 {
     internal class GlobeViewParser : IViewParser
     {
-        // Implement a singleton pattern for the StoryViewParser
+        // Implement a singleton pattern for the GlobeViewParser
         private static readonly Lazy<GlobeViewParser> _instance = new Lazy<GlobeViewParser>(() => new GlobeViewParser());
         public static GlobeViewParser Instance => _instance.Value;
-
-        private GlobeViewParser()
-        {
-        }
 
         public List<INeuroAction> GetPossibleActions(GameStateData stateData, ManualLogSource logger)
         {
