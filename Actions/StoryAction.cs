@@ -4,12 +4,18 @@ using NeuroSdk.Actions;
 using NeuroSdk.Json;
 using NeuroSdk.Websocket;
 using NeuroValet.ViewsParsers;
-using static NeuroValet.StateData.StoryData;
 
 namespace NeuroValet.Actions
 {
     internal class StoryAction : NeuroAction
     {
+        internal struct ChoiceData
+        {
+            public string ChoiceText { get; set; }
+            public int ChoiceIndex { get; set; }
+            public bool IsContinueChoice { get; set; }
+        }
+
         private readonly ChoiceData _choiceData;
 
         private ManualLogSource logger;

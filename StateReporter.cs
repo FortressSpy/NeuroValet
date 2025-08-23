@@ -1,6 +1,5 @@
 ﻿using BepInEx.Logging;
 using NeuroValet.StateData;
-using NeuroValet.ViewsParsers;
 
 namespace NeuroValet
 {
@@ -11,33 +10,92 @@ namespace NeuroValet
     {
         private ManualLogSource logger;
 
-        // Most data is gathered from game object classes, with the exception of Story data which is parsed from the StoryView.
-        StoryViewParser storyViewParser;
-
         public StateReporter(ManualLogSource logger)
         {
             this.logger = logger;
-            storyViewParser = StoryViewParser.Instance;
         }
 
         public GameStateData GetGameStateData()
         {
             GameStateData gameStateData = new GameStateData
             {
-                // Player = GetPlayerData(),
+                GeneralData = GetGeneralData(),
+                Player = GetPlayerData(),
+                City = GetCityData(),
                 // BasicData = GetBasicData(),
                 // Clock = GetClockData(),
                 // Luggage = GetLuggageData(),
                 // Journey = GetJourneyData(),
-                Story = new StoryData
-                {
-                    IsVisible = storyViewParser.IsStoryVisible(),
-                    StoryName = storyViewParser.GetStoryName(),
-                    Text = storyViewParser.GetStoryText(),
-                    Choices = storyViewParser.GetAvailableChoices()
-                }
             };
             return gameStateData;
+        }
+
+        private GeneralGameData GetGeneralData()
+        {
+            var game = Game.Static.game;
+            var player = Game.Static.player;
+            var clock = GameData.Static.clock;
+
+            return new GeneralGameData
+            {
+                CurrentTime = $"{clock.currentTime.hoursPart.hours}:{clock.currentTime.minutesPart.minutes}",
+                CurrentDayNumber = player?.dayNumberAdjustedForDateLine ?? 0,
+                DayOfWeek = player?.dayOfWeekName,
+                IsNightTime = player?.nightActive ?? false,
+                DidPassMidpoint = player != null && player.dateLineCrossedAndReported,
+
+                CurrentSituation = player?.descriptionOfSituation ?? "",
+
+                IsPrologueActive = game != null && game.prologueActive,
+                IsEpilogueActive = game != null && game.epilogueActive,
+                DidWin = player?.won ?? false,
+                MoneySpentDuringGame = player?.amountSpentOnTrip.poundsFloat ?? 0f
+            };
+        }
+
+        private PlayerData GetPlayerData()
+        {
+            var player = Game.Static.player;
+
+            PlayerData playerData = new PlayerData();
+            if (player == null)
+            {
+                playerData.HasData = false;
+            }
+            else
+            {
+                playerData.HasData = true;
+                playerData.PlayerName = player.currentCharacter;
+                playerData.CurrentHealth = player.health;
+                playerData.CurrentMoneyInPounds = player.money.poundsFloat;
+                playerData.IsInLondonAtStartOfGame = player.isInLondonAtStartOfGame;
+                playerData.BackInLondon = player.backInLondon;
+                playerData.IsWithFogg = !player.withoutFogg;
+            }
+
+            return playerData;
+        }
+
+        private CityData GetCityData()
+        {
+            var player = Game.Static.player;
+            var city = player?.currentCity;
+
+            CityData cityData = new CityData();
+
+            if (city == null)
+            {
+                cityData.IsInCity = false;
+            }
+            else
+            {
+                cityData.IsInCity = true;
+                cityData.CityName = city.displayName;
+                cityData.HasMarket = city.hasMarket;
+                cityData.HasBank = city.hasBank;
+                cityData.IsFakeCity = city.isFakeCity;
+            }
+            return cityData;
         }
     }
 }

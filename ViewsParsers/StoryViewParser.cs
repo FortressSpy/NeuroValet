@@ -6,7 +6,7 @@ using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using static NeuroValet.StateData.StoryData;
+using static NeuroValet.Actions.StoryAction;
 
 namespace NeuroValet.ViewsParsers
 {
