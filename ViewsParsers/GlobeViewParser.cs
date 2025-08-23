@@ -25,15 +25,15 @@ namespace NeuroValet.ViewsParsers
             {
                 actions.Add(new EnterCityAction(""));
             }
+            // TODO - other globe related actions -  Focusing on various available journeys. maybe focusing on other cities to see clues on them, especially if have any quests there?
 
             return actions;
         }
 
-        public void ExecuteAction()
+        public void FocusOnPlayer()
         {
-            // Only action allowed is focusing "on the player" - which enters the current location
-            // This is usually either a city, or a the current ongoing journey
-            // However we don't let neuro look outside the current journey, so this should mostly be looking into the current city
+            // Focus on the player looks at the current 'thing' where the player is. this is usually either a city or a journey
+            // However we don't let Neuro look outside when on a current journey, so this should mostly be for looking into the current city
             Game.Static.game.globeControls.FocusOnPlayer();
         }
 
