@@ -34,7 +34,13 @@ namespace NeuroValet
             // So add parsers in order of priority
             viewParsers = new List<IViewParser>
             {
+                // LargeTitleViewParser.Instance
+                // ConverseViewParser.Instance
                 StoryViewParser.Instance,
+                // MarketAndLuggageViewParser.Instance
+                // DepartueViewParser.Instance
+                // InfocardViewParser.Instance // does this even have actions? is this the Fogg tooltip or is it something else?
+                CloudViewParser.Instance,
                 GlobeViewParser.Instance,
             };
         }
