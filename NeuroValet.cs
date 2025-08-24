@@ -92,7 +92,7 @@ public class NeuroValet : BaseUnityPlugin
         }
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            Game.Static.game.globeControls.FocusOnPlayer();
+            MouseSimulator.DrawCursor();
         }
     }
 
