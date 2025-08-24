@@ -32,6 +32,14 @@ namespace NeuroValet
             // currentStateData.Journey = GetJourneyData();
         }
 
+        // Check game state state to see if Neuro can act right now or is waiting on some animations and such
+        // Note that even outside this, there are times when Neuro will have no valid actions, that do not fall under this,
+        // most likely while travelling or in the initial prologue animation.
+        public bool CanNeuroActRightNow()
+        {
+            return !currentStateData.GeneralData.IsRevealingNewRoutes;
+        }
+
         private GeneralGameData GetGeneralData()
         {
             var game = Game.Static.game;
@@ -47,6 +55,7 @@ namespace NeuroValet
                 DidPassMidpoint = player != null && player.dateLineCrossedAndReported,
 
                 CurrentSituation = player?.descriptionOfSituation ?? "",
+                IsRevealingNewRoutes = game?.globeControls?.routeDemonstrationIsActive ?? false,
 
                 IsPrologueActive = game != null && game.prologueActive,
                 IsEpilogueActive = game != null && game.epilogueActive,

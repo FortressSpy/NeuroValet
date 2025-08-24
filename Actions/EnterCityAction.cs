@@ -10,7 +10,7 @@ namespace NeuroValet.Actions
     {
         public override string Name => "focus_on_city";
 
-        protected override string Description => "Focus on the city you are in at the moment and check available actions there. Current position is " + _position;
+        protected override string Description => "Focus on the city you are in at the moment and check available actions there. Current city is " + _position;
 
         private readonly string _position;
 

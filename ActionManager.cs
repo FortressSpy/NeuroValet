@@ -34,7 +34,6 @@ namespace NeuroValet
             // So add parsers in order of priority
             viewParsers = new List<IViewParser>
             {
-                // LargeTitleViewParser.Instance
                 // ConverseViewParser.Instance
                 StoryViewParser.Instance,
                 // MarketAndLuggageViewParser.Instance
@@ -53,9 +52,9 @@ namespace NeuroValet
                 Context = "No actions are currently available.",
                 IsContextSilent = true
             };
+
             bool foundActions = false;
             int i = 0;
-
             while (!foundActions && viewParsers.Count > i)
             {
                 if (viewParsers[i].IsViewRelevant())

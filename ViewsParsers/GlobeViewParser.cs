@@ -23,7 +23,11 @@ namespace NeuroValet.ViewsParsers
             // TODO - other globe related actions -  Focusing on various available journeys. maybe focusing on other cities to see clues on them, especially if have any quests there?
             if (IsViewRelevant())
             {
-                possibleActions.Actions.Add(new EnterCityAction(""));
+                // TODO - Maybe have equivalent journey?
+                if (StateReporter.Instance.CurrentStateData.City.IsInCity)
+                {
+                    possibleActions.Actions.Add(new EnterCityAction(StateReporter.Instance.CurrentStateData.City.CityName));
+                }
             }
 
             possibleActions.Context = "You are looking at the globe. You can choose to focus on your current location to do more actions";

@@ -28,7 +28,6 @@ public class NeuroValet : BaseUnityPlugin
     private bool isReady = false;
 
     private ActionManager actionManager;
-    private StateReporter stateReporter;
 
     private ActionManager.PossibleActions neuroCurrentActions;
     private NeuroSdk.Actions.ActionWindow currentActionWindow;
@@ -51,7 +50,6 @@ public class NeuroValet : BaseUnityPlugin
         MouseSimulator.LoadCursorTexture(cursorPath);
 
         actionManager = new ActionManager(Logger);
-        stateReporter = StateReporter.Instance;
 
         Logger.LogInfo($"Plugin {MyPluginInfo.PLUGIN_GUID} is loaded!");
     }
@@ -82,10 +80,6 @@ public class NeuroValet : BaseUnityPlugin
     {
         if (!isReady) return;
 
-        // TODO - need to gather game state and send it as context?
-        // TODO - need to send first context, teaching how to play the game (on start?)
-        // TODO - need to understand when I trigger new action report / new context report. on every action maybe? can't do it immediately though, because actions take time to execute sometimes.
-        //KeyboardSimulator.ReleaseKeys();
         CheckDebugInputs();
     }
 
@@ -110,23 +104,30 @@ public class NeuroValet : BaseUnityPlugin
             // Gather game state data
             StateReporter.Instance.UpdateGameStateData();
 
-            // TODO - consider updating neuro's context? when?
+            bool canAct = StateReporter.Instance.CanNeuroActRightNow();
 
-            // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
-            var possibleActions = actionManager.GetPossibleActions();
-            if (HasNewActions(possibleActions))
+            // TODO - send context to neuro? Might want to do that more often than just when actions change though so she is more aware of the timer?
+            // TODO - also need to consider if there are special conditions that cause custom context (like game start, game end, first city, first market...)
+            // TODO - am i sending context before or after? context should maybe consider actions, so after probably...
+            if (canAct)
             {
-                // TODO - send context to neuro? Might want to do that more often than just when actions change though so she is more aware of the timer?
-                // TODO - also need to consider if there are special conditions that cause custom context (like game start, game end, first city, first market...)
-
-                // If there are new actions, prepare the action window for Neuro
-                PrepareActionWindow(possibleActions);
+                // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
+                var possibleActions = actionManager.GetPossibleActions();
+                if (HasNewActions(possibleActions))
+                {
+                    // If there are new actions, prepare the action window for Neuro
+                    PrepareActionWindow(possibleActions);
+                }
+            }
+            else
+            {
+                UnregisterActionWindow();
             }
 
             yield return new WaitForSeconds(1f);
         }
     }
-
+    
     private bool HasNewActions(ActionManager.PossibleActions possibleActions)
     {
         if (neuroCurrentActions.Actions == null || neuroCurrentActions.Actions.Count != possibleActions.Actions.Count)
@@ -157,16 +158,21 @@ public class NeuroValet : BaseUnityPlugin
         MouseSimulator.DrawCursor();
     }
 
+    private void UnregisterActionWindow()
+    {
+        if (currentActionWindow != null && currentActionWindow.CurrentState != ActionWindow.State.Ended)
+        {
+            currentActionWindow.End();
+        }
+    }
+
     private void PrepareActionWindow(ActionManager.PossibleActions actionsInfo)
     {
         // Remember the new actions so we can compare and see when they've changed
         neuroCurrentActions = actionsInfo;
 
         // Make sure to disable previous action window if it is still active
-        if (currentActionWindow != null && currentActionWindow.CurrentState != ActionWindow.State.Ended)
-        {
-            currentActionWindow.End();
-        }
+        UnregisterActionWindow();
 
         // Create a new action window and set the context if provided
         currentActionWindow = ActionWindow.Create(this.gameObject);

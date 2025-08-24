@@ -9,6 +9,6 @@
         public CityData City { get; set; }
         // public ClockData Clock { get; set; }
         // public LuggageData Luggage { get; set; }
-        // public JourneyData Journey { get; set; }
+        public JourneyData Journey { get; set; }
     }
 }
