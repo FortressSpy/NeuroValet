@@ -1,5 +1,8 @@
-﻿using NeuroValet.StateData;
+﻿using GameResources.MapData;
+using NeuroValet.StateData;
 using System;
+using System.Linq;
+using System.Net;
 
 namespace NeuroValet
 {
@@ -26,10 +29,8 @@ namespace NeuroValet
             currentStateData.GeneralData = GetGeneralData();
             currentStateData.Player = GetPlayerData();
             currentStateData.City = GetCityData();
-            // currentStateData.BasicData = GetBasicData();
-            // currentStateData.Clock = GetClockData();
             // currentStateData.Luggage = GetLuggageData();
-            // currentStateData.Journey = GetJourneyData();
+            currentStateData.Journey = GetJourneyData();
         }
 
         // Check game state state to see if Neuro can act right now or is waiting on some animations and such
@@ -109,6 +110,33 @@ namespace NeuroValet
                 cityData.BankFundsReady = player.bankFundsReady;
             }
             return cityData;
+        }
+
+        private string GetMinimalJourneyData(IJourneyInfo journeyInfo)
+        {
+            return $"{journeyInfo.displayName}. {journeyInfo.info.transportCategory} going from {journeyInfo.startCity.displayName} to {journeyInfo.destinationCity.displayName}" +
+                $"{(journeyInfo.viaCities.Count > 0 ? $", via: [{string.Join(", ", journeyInfo.viaCities.Select(c => c.viaCity.displayName))}]" : ".")}";
+        }
+
+        private JourneyData GetJourneyData()
+        {
+            var player = Game.Static.player;
+            var revealedJourneys = Game.Static.globeController?.journeyRevealController?.journeysBeingRevealed;
+
+            JourneyData journeyData = new JourneyData();
+
+            if (player != null)
+            {
+                journeyData.RoutesFromCurrentCity = player.currentAvailableJourneys?.Select(j => new Journey(j) { }).ToList();
+                if (revealedJourneys != null)
+                {
+                    journeyData.NewRoutesBeingRevealed = revealedJourneys.Select(j => GetMinimalJourneyData(j)).ToList();
+                }
+                journeyData.KnownRoutesWorldwide = player.visibleJourneysWorldwide?.Select(j => GetMinimalJourneyData(j)).ToList();
+                journeyData.CitiesPassed = player.visitedCities?.Select(j => j.displayName).ToList();
+            }
+
+            return journeyData;
         }
     }
 }
