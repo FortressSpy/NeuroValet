@@ -36,15 +36,14 @@ namespace NeuroValet.ViewsParsers
             }
             else if (cloudView?.mode == MenuMode.Travel)
             {
-                // TODO - implement after gathering Journey data
                 return GetPossibleActionsDuringJourney(cloudView, currentStateData, logger);
             }
             else
             {
                 // Cloud view was somehow prioritized, but it's in an unknown state (or hidden?) and therefore shouldn't have been prioritized
-                // This should never happen, but leaving it here in case there's some weird edge cases
-                // TODO report journey data too (current journey name, next city)
-                logger.LogError($"Somehow reached unknown cloud view state, with no actions allowed yet cloud view was still prioritized for actions. \n" +
+                // like hidden mode is when story/market(maybe converse too) are in use, so should've been prioritized over this parser.
+                // Therefor this should never happen, but leaving it here in case there's some weird edge cases
+                logger.LogWarning($"Somehow reached unknown cloud view state, with no actions allowed yet cloud view was still prioritized for actions. \n" +
                     $"This leaves no possible actions for Neuro and she might get stuck if this doesn't auto resolve.\n" +
                     $"CloudView not null {cloudView == null}. Mode: {cloudView.mode} Is Visible: {cloudView.isVisible}\n" +
                     $"Day {currentStateData.GeneralData.CurrentDayNumber}. City: {currentStateData.City.CityName}.");
@@ -59,9 +58,37 @@ namespace NeuroValet.ViewsParsers
         private PossibleActions GetPossibleActionsDuringJourney(CloudView cloudView, GameStateData currentStateData, ManualLogSource logger)
         {
             ActionManager.PossibleActions possibleActions = new ActionManager.PossibleActions();
-            //possibleActions.Context = $"You are on a trip to X that will take until Y." +
-                //$"During a trip you may do some optional actions, as well as some story ";
+            possibleActions.Context = $"You are on a journey to {currentStateData.Journey.ActiveJourney.DestinationCity}." +
+                $"During a journey you may do some optional actions, but have a limited time to do them.";
             possibleActions.IsContextSilent = true;
+
+            CloudViewIcons icons = (CloudViewIcons)iconsField.GetValue(cloudView);
+            IList<Icon> iconsList = (IList<Icon>)iconsListField.GetValue(icons);
+
+            for (int i = 0; i < iconsList.Count; i++)
+            {
+                var icon = iconsList[i];
+                string iconName = icon.name.ToLower();
+                if (iconName == "converse")
+                {
+                    possibleActions.Actions.Add(new TravelAction(
+                        i, icon,
+                        "Talk to fellow travellers on your journey to learn about possible routes from your destination and other rumours"));
+                }
+                if (iconName == "fogg")
+                {
+                    possibleActions.Actions.Add(new TravelAction(
+                        i, icon,
+                        "Attend and take care of Fogg, healing him a little."));
+                }
+                if (iconName == "wait")
+                {
+                    possibleActions.Actions.Add(new TravelAction(
+                        i, icon,
+                        "Pass some time reading the newspaper."));
+                }
+            }
+
             return possibleActions;
         }
 
