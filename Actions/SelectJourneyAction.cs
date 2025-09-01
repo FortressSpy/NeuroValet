@@ -2,30 +2,33 @@
 using NeuroSdk.Actions;
 using NeuroSdk.Json;
 using NeuroSdk.Websocket;
+using NeuroValet.StateData;
 using NeuroValet.ViewsParsers;
 
 namespace NeuroValet.Actions
 {
-    internal class EnterCityAction : NeuroSdk.Actions.NeuroAction
+    internal class SelectJourneyAction : NeuroSdk.Actions.NeuroAction
     {
-        public override string Name => "focus_on_city";
+        public override string Name => "select_journey_to_" + m_journey.DestinationCity.displayName;
 
-        protected override string Description => $"Focus on {_position} and check available actions within it, such as going to market, exploring for more routes, or sleeping for the night";
+        protected override string Description => m_journey.CanDepartRightNow 
+            ? $"Prepare to leave on journey to {m_journey.DestinationCity.displayName}. \nBasic journey information: {m_journey.MinimalContext}\""
+            : $"View details of future journey to {m_journey.DestinationCity.displayName}. \nBasic journey information: {m_journey.MinimalContext}\"";
 
-        private readonly string _position;
+        private readonly Journey m_journey;
 
         protected override JsonSchema Schema => new()
         {
         };
 
-        public EnterCityAction(string positionName)
+        public SelectJourneyAction(Journey journey)
         {
-            _position = positionName;
+            m_journey = journey;
         }
 
         protected override void Execute()
         {
-            GlobeViewParser.Instance.FocusOnPlayer();
+            GlobeViewParser.Instance.FocusOnCity(m_journey.DestinationCity);
         }
 
         protected override ExecutionResult Validate(ActionJData actionData)

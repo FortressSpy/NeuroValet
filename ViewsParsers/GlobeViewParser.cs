@@ -1,10 +1,8 @@
 ﻿using BepInEx.Logging;
+using GameResources.MapData;
 using GameViews;
-using NeuroSdk.Actions;
 using NeuroValet.Actions;
-using NeuroValet.StateData;
 using System;
-using System.Collections.Generic;
 using static NeuroValet.ActionManager;
 
 namespace NeuroValet.ViewsParsers
@@ -20,17 +18,20 @@ namespace NeuroValet.ViewsParsers
         public PossibleActions GetPossibleActions(ManualLogSource logger)
         {
             PossibleActions possibleActions = new PossibleActions();
-            // TODO - other globe related actions -  Focusing on various available journeys. maybe focusing on other cities to see clues on them, especially if have any quests there?
             if (IsViewRelevant())
             {
-                // TODO - Maybe have equivalent journey?
                 if (StateReporter.Instance.CurrentStateData.City.IsInCity)
                 {
                     possibleActions.Actions.Add(new EnterCityAction(StateReporter.Instance.CurrentStateData.City.CityName));
+
+                    foreach (var journey in StateReporter.Instance.CurrentStateData.Journey.RoutesFromCurrentCity)
+                    {
+                        possibleActions.Actions.Add(new SelectJourneyAction(journey));
+                    }
                 }
             }
 
-            possibleActions.Context = "You are looking at the globe. You can choose to focus on your current location to do more actions";
+            possibleActions.Context = "You are looking at the globe. You can choose your current city to view more actions there, or the destinations cities you can get to from here to plan and depart to them";
             possibleActions.IsContextSilent = false;
 
             return possibleActions;
@@ -43,14 +44,19 @@ namespace NeuroValet.ViewsParsers
             Game.Static.game.globeControls.FocusOnPlayer();
         }
 
+        public void FocusOnCity(ICityInfo city)
+        {
+            Game.Static.game.globeController.SelectCity(city);
+        }
+
         // Is the globe visible and player can be focused on?
         public bool IsViewRelevant()
         {
-            // Check if the globe is viewable
             IGameViews gameViews = GameViews.Static.gameViews;
 
             if (gameViews == null) return false;
 
+            // Check if the globe is viewable, and there isn't anything that takes8 control
             return
                 (!StateReporter.Instance.CurrentStateData.GeneralData.IsPrologueActive) &&
                 (!gameViews.settingsView?.isShown ?? true) &&

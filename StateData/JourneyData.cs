@@ -15,10 +15,11 @@ namespace NeuroValet.StateData
         public string RouteName { get; private set; }
         public float Cost { get; private set; }
         public string StartCity { get; private set; }
-        public string DestinationCity { get; private set; }
+        public ICityInfo DestinationCity { get; private set; }
         public string ViaCities { get; private set; }
         public string DepartTime { get; private set; } = string.Empty;
         public string ArrivalTime { get; private set; } = string.Empty;
+        public bool CanDepartRightNow { get; private set; }
         public bool IsCheap { get; private set; }
         public bool IsExpensive { get; private set; }
         public bool IsRough { get; private set; }
@@ -50,10 +51,11 @@ namespace NeuroValet.StateData
             Name = j.displayName;
             RouteName = j.routeName;
             StartCity = j.startCity.displayName;
-            DestinationCity = j.destinationCity.displayName;
-            KnownCluesAboutDestination = (player.cluesByCity != null) ? player.cluesByCity.TryGetValue(j.destinationCity, out var clues) ? string.Join("; ", clues.Select(c => c.text)) : "" : "";
+            DestinationCity = j.destinationCity;
+            KnownCluesAboutDestination = (player.cluesByCity != null) ? player.cluesByCity.TryGetValue(DestinationCity, out var clues) ? string.Join("; ", clues.Select(c => c.text)) : "" : "";
             ViaCities = string.Join(", ", j.viaCities.Select(c => $"{c.viaCity.displayName}"));
             DepartTime = player?.DescriptionOfDaysUntilNextSailingOf(j) ?? "";
+            CanDepartRightNow = player?.journeysAvailableToLeaveNow.Contains(j) ?? false;
             Cost = GameData.Static.journeyData.CostOfTicketForJourney(j).pounds;
             IsCheap = j.isCheap;
             IsExpensive = j.isExpensive;
@@ -66,7 +68,7 @@ namespace NeuroValet.StateData
             // TODO - arrival time is using routefinder, which is only available when selecting a city apparently.
             // TODO - This kinda means to have enough data she'll have to click on cities and go through all of the routes
             // TODO - consider just moving this data to full context, drop globeviewcontext, and add depart time in minimal context.
-            var routeToDestination = player.routeFinder?.RouteTo(j.destinationCity);
+            var routeToDestination = player.routeFinder?.RouteTo(DestinationCity);
             if (routeToDestination != null) 
             {
                 ArrivalTime = routeToDestination.approximated 
@@ -75,7 +77,7 @@ namespace NeuroValet.StateData
             }
 
             DebugText = $"Name: {Name}. Route Name: {RouteName}. Unspecifically named: {j.unspecificallyNamed}\n" +
-                $"{StartCity}->{DestinationCity}. \n" +
+                $"{StartCity}->{DestinationCity.displayName}. {(CanDepartRightNow ? "READY TO DEPART NOW" : "")}\n" +
                 $"{(IsCheap ? "Cheap " : "")}{(IsExpensive ? "Expensive " : "")}{(IsRough ? "Rough " : "")}{(IsFast ? "Fast " : "")}{(IsSlow ? "Slow " : "")}{(IsLimitedLuggage ? "Limited Luggage " : "")}{(j.info.isFlexiblyTimed ? "Flexible Time " : "")}\n" +
                 $"Via cities: \n{string.Join("\n", j.viaCities.Select(c => $"({c.viaCity.displayName}. On Day {c.onDay}. Surface Distance: {CalcDistanceInMiles(c.surfaceDistance)}. Distance East of London: {CalcDistanceInMiles(c.viaCity.distanceEastOfLondon)})"))}\n" +
                 $"Cities on journey: \n{string.Join(",", j.citiesOnJourney.Select(c => $"({c.displayName}. DOeL {CalcDistanceInMiles(c.distanceEastOfLondon)})"))}\n" +
@@ -85,12 +87,12 @@ namespace NeuroValet.StateData
                 $"Destination Clues: {KnownCluesAboutDestination}\n" +
                 $"Transport: [type: {j.info.transportType}, category: {TransportType}, medium: {j.info.transportMedium} size: {j.info.transportSize}]]\n";
             
-            MinimalContext = $"{Name}. {TransportType} going from {StartCity} to {DestinationCity}" +
+            MinimalContext = $"{Name}. {TransportType} going from {StartCity} to {DestinationCity.displayName}" +
                 $"{(ViaCities.IsNullOrEmpty() ? "" : $", via: [{ViaCities}]")}";
             GlobeViewContext = MinimalContext + $"\nDepart {DepartTime}, {ArrivalTime} and Cost: £{Cost.ToString()}";
             FullContext = $"{GlobeViewContext}" +
                 $"{(IsLimitedLuggage ? $"\nHas space for {j.info.luggage.luggageSlots} suitcases. Can buy extra space for £{j.info.luggage.extraLuggage.cost}." : "")}" +
-                $"{(!KnownCluesAboutDestination.IsNullOrEmpty() ? $"\nRumours about {DestinationCity}: {KnownCluesAboutDestination}." : "")}";
+                $"{(!KnownCluesAboutDestination.IsNullOrEmpty() ? $"\nRumours about {DestinationCity.displayName}: {KnownCluesAboutDestination}." : "")}";
             // TODO - any additional depart screen info, for example can't take due to money or luggage limit? Maybe extra space only if needed
         }
     }
