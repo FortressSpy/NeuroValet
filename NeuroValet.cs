@@ -113,7 +113,7 @@ public class NeuroValet : BaseUnityPlugin
             {
                 // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
                 var possibleActions = actionManager.GetPossibleActions();
-                if (HasNewActions(possibleActions))
+                if (DidPossibleActionsChange(possibleActions))
                 {
                     // If there are new actions, prepare the action window for Neuro
                     PrepareActionWindow(possibleActions);
@@ -128,7 +128,7 @@ public class NeuroValet : BaseUnityPlugin
         }
     }
     
-    private bool HasNewActions(ActionManager.PossibleActions possibleActions)
+    private bool DidPossibleActionsChange(ActionManager.PossibleActions possibleActions)
     {
         if (neuroCurrentActions.Actions == null || neuroCurrentActions.Actions.Count != possibleActions.Actions.Count)
         {
