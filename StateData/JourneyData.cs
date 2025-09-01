@@ -101,7 +101,12 @@ namespace NeuroValet.StateData
         public List<string> NewRoutesBeingRevealed { get; set; }
         public List<string> KnownRoutesWorldwide { get; set; }
         public List<string> CitiesPassed { get; set; }
-        // TODO - data about current active route? is even necessary? does it need a different struct?
+
+        public bool HasActiveJourney { get; set; } 
+        public Journey ActiveJourney { get; set; }
+        public float ActiveJourneyProgress { get; set; }
+        public int ActiveJourneyArrivalDay { get; set; }
+        public int ActiveJourneyDepartedOnDay { get; set; }
 
         public JourneyData()
         {

@@ -134,6 +134,19 @@ namespace NeuroValet
                 }
                 journeyData.KnownRoutesWorldwide = player.visibleJourneysWorldwide?.Select(j => GetMinimalJourneyData(j)).ToList();
                 journeyData.CitiesPassed = player.visitedCities?.Select(j => j.displayName).ToList();
+
+                if (player.activeJourney != null)
+                {
+                    journeyData.HasActiveJourney = true;
+                    journeyData.ActiveJourney = new Journey(player.activeJourney.journey);
+                    journeyData.ActiveJourneyProgress = (float)player.activeJourney.overallProgress;
+                    journeyData.ActiveJourneyArrivalDay = player.activeJourney.arrivalDayNumber;
+                    journeyData.ActiveJourneyDepartedOnDay = player.activeJourney.startDayNumber;
+                }
+                else
+                {
+                    journeyData.HasActiveJourney = false;
+                }
             }
 
             return journeyData;

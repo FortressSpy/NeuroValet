@@ -1,5 +1,6 @@
 using GameViews.BottomNav;
 using NeuroValet;
+using System;
 using System.Text;
 using UnityEngine;
 
@@ -46,10 +47,20 @@ public class DebugDataWindow
 
         showCurrentRouteFullDebugInfo = GUILayout.Toggle(showCurrentRouteFullDebugInfo, "Show Route Debug data");
 
-        GUILayout.Label("<b>Current Routes</b>", GetLabelStyle());
-        currentRoutesScroll = GUILayout.BeginScrollView(currentRoutesScroll, GUILayout.Height(480));
-        GUILayout.Label(GetCurrentRoutes(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
-        GUILayout.EndScrollView();
+        if (StateReporter.Instance.CurrentStateData.Journey.HasActiveJourney)
+        {
+            GUILayout.Label("<b>Active Journey</b>", GetLabelStyle());
+            currentRoutesScroll = GUILayout.BeginScrollView(currentRoutesScroll, GUILayout.Height(480));
+            GUILayout.Label(GetActiveJourney(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
+            GUILayout.EndScrollView();
+        }
+        else
+        {
+            GUILayout.Label("<b>Current Routes</b>", GetLabelStyle());
+            currentRoutesScroll = GUILayout.BeginScrollView(currentRoutesScroll, GUILayout.Height(480));
+            GUILayout.Label(GetCurrentRoutes(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
+            GUILayout.EndScrollView();
+        }
 
         GUILayout.Space(5);
         GUILayout.Label("<b>New Routes</b>", GetLabelStyle());
@@ -136,10 +147,22 @@ public class DebugDataWindow
             {
                 journeysData.Append(journey.FullContext);
             }
-            journeysData.Append("===============================\n");
+            journeysData.Append("\n===============================\n");
         }
 
         return journeysData.ToString();
+    }
+
+    private string GetActiveJourney()
+    {
+        var journey = StateReporter.Instance.CurrentStateData.Journey;
+
+        StringBuilder journeyData = new StringBuilder();
+        journeyData.AppendLine(journey.ActiveJourney.Name);
+        journeyData.AppendLine($"Passed {journey.ActiveJourneyProgress.ToString("P2")}. Departed on Day {journey.ActiveJourneyDepartedOnDay} and will arrive on Day {journey.ActiveJourneyArrivalDay}\n");
+        journeyData.AppendLine(journey.ActiveJourney.DebugText);
+
+        return journeyData.ToString();
     }
 
     private string GetVisitedCities()
