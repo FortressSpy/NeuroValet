@@ -79,13 +79,13 @@ namespace NeuroValet.ViewsParsers
                 {
                     possibleActions.Actions.Add(new TravelAction(
                         i, icon,
-                        "Attend and take care of Fogg, healing him a little."));
+                        "Attend and take care of Fogg, healing him a little"));
                 }
                 if (iconName == "wait")
                 {
                     possibleActions.Actions.Add(new TravelAction(
                         i, icon,
-                        "Pass some time reading the newspaper."));
+                        "Pass some time reading the newspaper"));
                 }
             }
 
@@ -104,7 +104,7 @@ namespace NeuroValet.ViewsParsers
             ActionManager.PossibleActions possibleActions = new ActionManager.PossibleActions();
             StringBuilder context = new StringBuilder();
             context.AppendLine($"You are within a city [{currentStateData.City.CityName}].\n" +
-                "You usually will want to explore first, then go to market to buy & sell items, then plan your next journey, then sleep or skip time until you can go on that journey.\n" +
+                "You usually want to explore first, then go to market to buy & sell items, then plan your next journey, then sleep or skip time until you can go on that journey.\n" +
                 "However each action spends some time, so you might to skip some or do them in a different order to avoid missing out on some, or worse, missing your next trip.\n" +
                 "Note that available actions depend on time of day, and day of week, as well as some events.");
 
@@ -173,11 +173,18 @@ namespace NeuroValet.ViewsParsers
                 {
                     if (IsActionPossible(icon))
                     {
+                        StringBuilder sleepActionText = new StringBuilder();
+                        sleepActionText.Append((iconName == "hotel")
+                            ? "Spend the night in an hotel. +1 day and heal Fogg a bit"
+                            : "Spend the night. +1 day.");
+
+                        if (currentStateData.City.BankTransferInProgress)
+                        {
+                            sleepActionText.Append(" [You've requested funds from the bank. You should wait for them]");
+                        }
+
                         possibleActions.Actions.Add(new CityAction(
-                            i, icon,
-                            (iconName == "hotel") 
-                            ? "Spend the night in an hotel. +1 day and heal Fogg a bit" 
-                            : "Spend the night. +1 day."));
+                            i, icon, sleepActionText.ToString()));
                     }
                 }
                 else if (iconName == "depart" || iconName == "plan")

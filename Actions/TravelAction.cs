@@ -42,7 +42,7 @@ namespace NeuroValet.Actions
             }
             else
             {
-                return ExecutionResult.Failure("This action is no longer doable. " +
+                return ExecutionResult.Failure("This action is no longer useable. " +
                     "Most likely that you've run out of time to do this, and/or it was recently unregistered");
             }
         }
