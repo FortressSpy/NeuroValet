@@ -143,7 +143,7 @@ public class NeuroValet : BaseUnityPlugin
         // Compare each action in the list to see if there any difference between them
         for (int i = 0; i < possibleActions.Actions.Count; i++)
         {
-            if (neuroCurrentActions.Actions[i].Equals(possibleActions.Actions[i]))
+            if (!neuroCurrentActions.Actions[i].Equals(possibleActions.Actions[i]))
             {
                 return true; // New action found
             }
