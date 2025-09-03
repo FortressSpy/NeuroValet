@@ -1,15 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using Game.Luggage;
-using Game.Player;
-using GameResources.Items;
 using HarmonyLib;
 using NeuroSdk;
 using NeuroSdk.Actions;
 using NeuroSdk.Messages.Outgoing;
-using NeuroValet.StateData;
 using NeuroValet.Overrides;
+using NeuroValet.ViewsParsers;
 using System;
 using System.Collections;
 using System.Text;
@@ -94,6 +91,10 @@ public class NeuroValet : BaseUnityPlugin
         {
             MouseSimulator.DrawCursor();
         }
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            CloudViewParser.Instance.SkipTime();
+        }
     }
 
     // Once a second, Gather game state data
@@ -143,8 +144,8 @@ public class NeuroValet : BaseUnityPlugin
         // Compare each action in the list to see if there any difference between them
         for (int i = 0; i < possibleActions.Actions.Count; i++)
         {
-            if (!neuroCurrentActions.Actions[i].Equals(possibleActions.Actions[i]))
-            {
+            if (neuroCurrentActions.Actions[i].Name != possibleActions.Actions[i].Name)
+            { 
                 return true; // New action found
             }
         }

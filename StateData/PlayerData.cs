@@ -1,6 +1,4 @@
 ﻿
-using GameData;
-
 namespace NeuroValet.StateData
 {
     internal struct PlayerData
@@ -12,5 +10,6 @@ namespace NeuroValet.StateData
         public bool IsInLondonAtStartOfGame { get; set; }
         public bool BackInLondon { get; set; }
         public bool IsWithFogg { get; set; }
+        public bool CanSkipTime { get; set; }
     }
 }

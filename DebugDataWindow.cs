@@ -179,6 +179,7 @@ public class DebugDataWindow
         if (knownRoutes == null) return "";
 
         StringBuilder journeysData = new StringBuilder();
+
         foreach (var journey in knownRoutes)
         {
             journeysData.Append($"{journey}");

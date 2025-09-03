@@ -9,7 +9,7 @@ namespace NeuroValet.Actions
 {
     internal class SelectJourneyAction : NeuroSdk.Actions.NeuroAction
     {
-        public override string Name => "select_journey_to_" + m_journey.DestinationCity.displayName;
+        public override string Name => "select_journey_to_" + m_journey.DestinationCity.displayName.ToLower();
 
         protected override string Description => m_journey.CanDepartRightNow 
             ? $"Prepare to leave on journey to {m_journey.DestinationCity.displayName}. \nBasic journey information: {m_journey.MinimalContext}\""

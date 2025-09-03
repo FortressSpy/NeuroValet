@@ -83,6 +83,7 @@ namespace NeuroValet
                 playerData.IsInLondonAtStartOfGame = player.isInLondonAtStartOfGame;
                 playerData.BackInLondon = player.backInLondon;
                 playerData.IsWithFogg = !player.withoutFogg;
+                playerData.CanSkipTime = player.canSkipHour;
             }
 
             return playerData;

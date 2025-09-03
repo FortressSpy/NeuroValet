@@ -217,8 +217,11 @@ namespace NeuroValet.ViewsParsers
                 }
             }
 
-            // TODO - add action 'clicking on the clock' which will skip 1 hour ahead.
-            // TODO - this might be done through a clock view parser, which will be run in conjunction with this?
+            // Can skip ahead in time right now?
+            if (currentStateData.Player.CanSkipTime)
+            {
+                possibleActions.Actions.Add(new ClockSkipTimeAction());
+            }
 
             possibleActions.Context = context.ToString();
             possibleActions.IsContextSilent = true;
@@ -229,6 +232,11 @@ namespace NeuroValet.ViewsParsers
         private bool IsActionPossible(GameViews.Cloud.Icon icon)
         {
             return (icon.available && !icon.ignoreClicks && icon.fadeAlpha > 0f && icon.iconData.clickEventName != null);
+        }
+
+        internal void SkipTime()
+        {
+            Game.Static.player?.TrySkipHour();
         }
     }
 }
