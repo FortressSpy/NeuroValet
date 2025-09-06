@@ -7,13 +7,11 @@ using NeuroValet.ViewsParsers;
 
 namespace NeuroValet.Actions
 {
-    internal class SelectJourneyAction : NeuroSdk.Actions.NeuroAction
+    internal class EmbarkJourneyAction : NeuroSdk.Actions.NeuroAction
     {
-        public override string Name => "select_journey_to_" + m_journey.DestinationCity.displayName.ToLower();
+        public override string Name => "embark_journey_to_" + m_journey.DestinationCity.displayName.ToLower();
 
-        protected override string Description => m_journey.CanDepartRightNow 
-            ? $"Prepare to leave on journey to {m_journey.DestinationCity.displayName} that is leaving soon."
-            : $"View additional details for future journey to {m_journey.DestinationCity.displayName} and possibly negotiate for an earlier departure time.";
+        protected override string Description => $"View departure window for journey to {m_journey.DestinationCity.displayName} that is departing soon";
 
         private readonly Journey m_journey;
 
@@ -21,14 +19,14 @@ namespace NeuroValet.Actions
         {
         };
 
-        public SelectJourneyAction(Journey journey)
+        public EmbarkJourneyAction(Journey journey)
         {
             m_journey = journey;
         }
 
         protected override void Execute()
         {
-            GlobeViewParser.Instance.FocusOnCity(m_journey.DestinationCity);
+            GlobeViewParser.Instance.OpenDepartureWindow();
         }
 
         protected override ExecutionResult Validate(ActionJData actionData)

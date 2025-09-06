@@ -1,11 +1,6 @@
-﻿using Game.Player;
-using GameResources.MapData;
-using GameResources.MapData.RouteFinder;
-using GameViews.Globe.Impl;
+﻿using GameResources.MapData;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using UnityEngine;
 
 namespace NeuroValet.StateData
 {
@@ -30,10 +25,10 @@ namespace NeuroValet.StateData
         public string KnownCluesAboutDestination { get; private set; }
 
         public string MinimalContext { get; private set; }
-        public string GlobeViewContext { get; private set; }
         public string FullContext { get; private set; }
         public string DebugText { get; private set; }
 
+        // TODO - not actually sending any distance info for Neuro. Probably unnecessary until learning if she knows geography enough to navigate reasonably
         private static string CalcDistanceInMiles(float surfaceDistance)//Vector2 playerCoordinates, Vector2 cityCoordinates)
         {
             float num = GlobeMaths.SurfaceDistanceInMiles(surfaceDistance);//GlobeMaths.SurfaceDistanceBetweenCoordinates(playerCoordinates, this.cityInfo.location));
@@ -47,7 +42,6 @@ namespace NeuroValet.StateData
         {
             var player = Game.Static.player;
 
-            // TODO - do I need to save journey info in here so I can select the route in the globe view? maybe need to save destination city?
             Name = j.displayName;
             RouteName = j.routeName;
             StartCity = j.startCity.displayName;
@@ -65,9 +59,9 @@ namespace NeuroValet.StateData
             IsLimitedLuggage = j.hasLimitedLuggage;
             TransportType = j.info.transportCategory;
 
-            // TODO - arrival time is using routefinder, which is only available when selecting a city apparently.
-            // TODO - This kinda means to have enough data she'll have to click on cities and go through all of the routes
-            // TODO - consider just moving this data to full context, drop globeviewcontext, and add depart time in minimal context.
+            // Arrival time is using routefinder, which is only available when selecting/hovering over a city apparently,
+            // Not implementing free mouse control and hovering for Neuro, so will only be available when focusing on a city
+            // This kinda means to have enough data she'll have to click on cities and go through all of the routes, which is probably good for viewer visibility anyway
             var routeToDestination = player.routeFinder?.RouteTo(DestinationCity);
             if (routeToDestination != null) 
             {
@@ -89,11 +83,10 @@ namespace NeuroValet.StateData
             
             MinimalContext = $"{Name}. {TransportType} going from {StartCity} to {DestinationCity.displayName}" +
                 $"{(ViaCities.IsNullOrEmpty() ? "" : $", via: [{ViaCities}]")}";
-            GlobeViewContext = MinimalContext + $"\nDepart {DepartTime}, {ArrivalTime} and Cost: £{Cost.ToString()}";
-            FullContext = $"{GlobeViewContext}" +
+            FullContext = $"{MinimalContext}" +
+                $"\nDepart {DepartTime}, {ArrivalTime} and Cost: £{Cost.ToString()}" +
                 $"{(IsLimitedLuggage ? $"\nHas space for {j.info.luggage.luggageSlots} suitcases. Can buy extra space for £{j.info.luggage.extraLuggage.cost}." : "")}" +
                 $"{(!KnownCluesAboutDestination.IsNullOrEmpty() ? $"\nRumours about {DestinationCity.displayName}: {KnownCluesAboutDestination}." : "")}";
-            // TODO - any additional depart screen info, for example can't take due to money or luggage limit? Maybe extra space only if needed
         }
     }
     

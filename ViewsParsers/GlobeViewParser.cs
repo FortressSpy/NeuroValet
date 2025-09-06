@@ -1,8 +1,11 @@
 ﻿using BepInEx.Logging;
 using GameResources.MapData;
 using GameViews;
+using GameViews.InfoCard;
+using HarmonyLib;
 using NeuroValet.Actions;
 using System;
+using System.Text;
 using static NeuroValet.ActionManager;
 
 namespace NeuroValet.ViewsParsers
@@ -17,21 +20,40 @@ namespace NeuroValet.ViewsParsers
 
         public PossibleActions GetPossibleActions(ManualLogSource logger)
         {
+            var selectedCity = Game.Static.game.globeController.selectedCity;
             PossibleActions possibleActions = new PossibleActions();
-            if (IsViewRelevant())
-            {
-                if (StateReporter.Instance.CurrentStateData.City.IsInCity)
-                {
-                    possibleActions.Actions.Add(new EnterCityAction(StateReporter.Instance.CurrentStateData.City.CityName));
+            
+            StringBuilder context = new StringBuilder();
+            context.AppendLine("You are looking at the globe view, where you can see your current city and other cities you can travel to.");
 
-                    foreach (var journey in StateReporter.Instance.CurrentStateData.Journey.RoutesFromCurrentCity)
+            // TODO is there anything in the globe view parser that should happen outside of being in a city?
+            if (StateReporter.Instance.CurrentStateData.City.IsInCity)
+            {
+                possibleActions.Actions.Add(new EnterCityAction(StateReporter.Instance.CurrentStateData.City.CityName));
+
+                foreach (var journey in StateReporter.Instance.CurrentStateData.Journey.RoutesFromCurrentCity)
+                {
+                    // Is this city selected? if so, we have different actions about it
+                    if (selectedCity?.cityInfo.name == journey.DestinationCity.name)
+                    {
+                        context.AppendLine($"You are viewing possible journey to {journey.DestinationCity.displayName}. Full journey information to it: {journey.FullContext}");
+                        if (journey.CanDepartRightNow)
+                        {
+                            possibleActions.Actions.Add(new EmbarkJourneyAction(journey));
+                        }
+                        else
+                        {
+                            // TODO - negotiate if possible
+                        }
+                    }
+                    else
                     {
                         possibleActions.Actions.Add(new SelectJourneyAction(journey));
                     }
                 }
             }
 
-            possibleActions.Context = "You are looking at the globe. You can choose your current city to view more actions there, or the destinations cities you can get to from here to plan and depart to them";
+            possibleActions.Context = context.ToString();
             possibleActions.IsContextSilent = false;
 
             return possibleActions;
@@ -46,7 +68,9 @@ namespace NeuroValet.ViewsParsers
 
         public void FocusOnCity(ICityInfo city)
         {
-            Game.Static.game.globeController.SelectCity(city);
+            // TODO This way to focus on a city doesn't hide the Negotiate action when switching between cities properly...
+            Game.Static.game.globeController?.SelectCity(city);
+            Game.Static.gameAudio?.sfxController?.PlayClickCitySFX();
         }
 
         // Is the globe visible and player can be focused on?
@@ -64,6 +88,28 @@ namespace NeuroValet.ViewsParsers
                 (!gameViews.marketAndLuggageView?.isShown ?? true) && 
                 (!gameViews.cloudView?.isShown ?? true) && 
                 (!gameViews.storyView?.isShown ?? true);
+        }
+
+        internal void OpenDepartureWindow()
+        {
+            // Is a target city selected?
+            // this should only have happened if we've focused on a destination city,
+            // as neuro doesn't have actions to focus on other cities (except current city, but that enters other modes)
+            if (Game.Static.game.globeController.selectedCity == null)
+            {
+                return;
+            }
+
+            var infoCardsView = (InfoCardsView)GameViews.Static.infoCardView;
+
+            // if can leave on this current journey, then there should be a single embark card - find and click on it
+            var getBestTargetCard = AccessTools.Method(typeof(InfoCardsView), "GetBestTargetCard");
+            var infoCard = (InfoCardView)getBestTargetCard.Invoke(infoCardsView, null);
+            if (infoCard is EmbarkCardView embarkCard)
+            {
+                embarkCard.OnClickedEmbark();
+                return;
+            }
         }
     }
 }
