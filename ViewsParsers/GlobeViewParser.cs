@@ -68,7 +68,7 @@ namespace NeuroValet.ViewsParsers
 
         public void FocusOnCity(ICityInfo city)
         {
-            // TODO This way to focus on a city doesn't hide the Negotiate action when switching between cities properly...
+            GameViews.Static.bottomNavView.foggPanelView?.ClearFoggBubbles(); // clear any fogg bubbles - belonged to previous focused city
             Game.Static.game.globeController?.SelectCity(city);
             Game.Static.gameAudio?.sfxController?.PlayClickCitySFX();
         }
