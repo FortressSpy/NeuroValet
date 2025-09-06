@@ -6,6 +6,7 @@ using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using static NeuroValet.ActionManager;
 using static NeuroValet.Actions.StoryAction;
 
@@ -113,7 +114,8 @@ namespace NeuroValet.ViewsParsers
         private string GetStoryText()
         {
             StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
-            return contents?.currentFlowText ?? "";
+            string storyText = contents?.currentFlowText ?? "";
+            return Regex.Replace(storyText, "<.*?>", string.Empty); // Remove any HTML tags (game uses it to format the text)
         }
 
         private List<ChoiceData> GetAvailableChoices()

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using static NeuroValet.ActionManager;
 
 namespace NeuroValet.ViewsParsers
@@ -76,8 +77,15 @@ namespace NeuroValet.ViewsParsers
                     var healthReport = healthReportGetter.Invoke(departureView, null);
                     var dontTravelField = AccessTools.Field(healthReport.GetType(), "dontTravel");
                     var dontTravel = (bool)dontTravelField.GetValue(healthReport);
+                    var itemBenefitField = AccessTools.Field(healthReport.GetType(), "itemBenefit");
+                    var itemBenefit = (int)itemBenefitField.GetValue(healthReport);
                     var healthCostField = AccessTools.Field(healthReport.GetType(), "cost");
                     var healthCost = (int)healthCostField.GetValue(healthReport);
+
+                    // Report health damage (will also report if can't travel due to health)
+                    var healthRiskReport = TextGen.RigoursBodyTextFor(departureView.journey, dontTravel);
+                    healthRiskReport = Regex.Replace(healthRiskReport, "<.*?>", string.Empty); // remove any HTML tags
+                    context.AppendLine($"Health risk report: {healthRiskReport}. Costs {healthCost} health but items protect {itemBenefit} of that");
 
                     // Can travel safely?
                     if (!dontTravel)
@@ -96,7 +104,7 @@ namespace NeuroValet.ViewsParsers
                         if (!tooMuchLuggage)
                         {
                             // All good, can depart! Note that we need to report journey cost
-                            possibleActions.Actions.Add(new DepartureStartJourneyAction(journeyData, healthCost));
+                            possibleActions.Actions.Add(new DepartureStartJourneyAction(journeyData, itemBenefit + healthCost));
                         }
                         else
                         {
@@ -124,15 +132,10 @@ namespace NeuroValet.ViewsParsers
                             }
                         }
                     }
-                    else
-                    {
-                        var healthRiskReport = TextGen.RigoursBodyTextFor(departureView.journey, dontTravel);
-                        context.AppendLine($"However you cannot travel due to health status. (Game is saying {healthRiskReport})");
-                    }
                 }
                 else
                 {
-                    context.AppendLine($"However, The ticket price is {journeyData.Cost} more than {playerData.PlayerName}(YOU) can pay" +
+                    context.AppendLine($"However, The ticket price is £{journeyData.Cost} more than {playerData.PlayerName}(YOU) can pay" +
                         $"{(!playerData.IsWithFogg ? " without Fogg" : "")}");
                 }
             }
@@ -146,7 +149,7 @@ namespace NeuroValet.ViewsParsers
 
             context.AppendLine("Full journey data:\n" + journeyData.FullContext);
             possibleActions.Context = context.ToString();
-            possibleActions.IsContextSilent = true;
+            possibleActions.IsContextSilent = false;
 
             return possibleActions;
         }

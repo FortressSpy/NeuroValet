@@ -224,7 +224,7 @@ namespace NeuroValet.ViewsParsers
             }
 
             possibleActions.Context = context.ToString();
-            possibleActions.IsContextSilent = true;
+            possibleActions.IsContextSilent = false;
 
             return possibleActions;
         }

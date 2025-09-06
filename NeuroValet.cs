@@ -65,7 +65,9 @@ public class NeuroValet : BaseUnityPlugin
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} launched. Web socket set to: {configWebSocketUrl.Value}");
 
             // TODO - improve the context. Ask how much should be here (explanation of the game mechanics? world? tips (like how much money you generally need)?
-            Context.Send("You are playing as Passepartout, valet to Phileas Fogg. He made a bet to travel the world in 80 days or less, starting from London.", true);
+            Context.Send(
+                "You are playing as Pasepartout, a french valet. This is the year 1872. New weird steampunk technology is starting to spread, " +
+                "and your new master, Phileas Fogg, has just made a massive bet to travel the world in 80 days or less, starting from London.");
         }
         else
         {
@@ -110,6 +112,7 @@ public class NeuroValet : BaseUnityPlugin
             // TODO - send context to neuro? Might want to do that more often than just when actions change though so she is more aware of the timer?
             // TODO - also need to consider if there are special conditions that cause custom context (like game start, game end, first city, first market...)
             // TODO - am i sending context before or after? context should maybe consider actions, so after probably...
+            // TODO - honestly sending most context within the actions. I am missing reporting the clock and day info at the very least
             if (canAct)
             {
                 // Get the current possible game actions, and check if they have changed from the ones Neuro has available already
@@ -125,6 +128,8 @@ public class NeuroValet : BaseUnityPlugin
                 UnregisterActionWindow();
             }
 
+            // Note, we actually only post updates to neuro in PrepareActionWindow, so won't be spamming messages when nothing changes
+            // TODO - the above is true for now, but will change once we start sending clock updates - keep that in mind
             yield return new WaitForSeconds(1f);
         }
     }

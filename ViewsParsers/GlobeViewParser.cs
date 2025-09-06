@@ -29,14 +29,16 @@ namespace NeuroValet.ViewsParsers
             // TODO is there anything in the globe view parser that should happen outside of being in a city?
             if (StateReporter.Instance.CurrentStateData.City.IsInCity)
             {
-                possibleActions.Actions.Add(new EnterCityAction(StateReporter.Instance.CurrentStateData.City.CityName));
+                string currentCityName = StateReporter.Instance.CurrentStateData.City.CityName;
+                context.Append($"You are currently in {currentCityName}");
+                possibleActions.Actions.Add(new EnterCityAction(currentCityName));
 
                 foreach (var journey in StateReporter.Instance.CurrentStateData.Journey.RoutesFromCurrentCity)
                 {
                     // Is this city selected? if so, we have different actions about it
                     if (selectedCity?.cityInfo.name == journey.DestinationCity.name)
                     {
-                        context.AppendLine($"You are viewing possible journey to {journey.DestinationCity.displayName}. Full journey information to it: {journey.FullContext}");
+                        context.Append($" and viewing possible journey to {journey.DestinationCity.displayName}. Full journey information to it:\n{journey.FullContext}");
                         if (journey.CanDepartRightNow)
                         {
                             possibleActions.Actions.Add(new EmbarkJourneyAction(journey));

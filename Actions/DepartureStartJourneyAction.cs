@@ -11,7 +11,9 @@ namespace NeuroValet.Actions
     {
         public override string Name => "depart_on_journey";
 
-        protected override string Description => $"Start trip to {_journey.DestinationCity.displayName}, {_journey.ArrivalTime}, Will cost {_journey.Cost}, and will do {_healthCost} health damage";
+        protected override string Description => 
+            $"Start trip to {_journey.DestinationCity.displayName}, {_journey.ArrivalTime}, " +
+            $"Will cost £{_journey.Cost}, and will do {_healthCost} health damage";
 
         private readonly Journey _journey;
         private readonly int _healthCost;

@@ -1,6 +1,7 @@
 ﻿using GameResources.MapData;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace NeuroValet.StateData
 {
@@ -46,7 +47,11 @@ namespace NeuroValet.StateData
             RouteName = j.routeName;
             StartCity = j.startCity.displayName;
             DestinationCity = j.destinationCity;
-            KnownCluesAboutDestination = (player.cluesByCity != null) ? player.cluesByCity.TryGetValue(DestinationCity, out var clues) ? string.Join("; ", clues.Select(c => c.text)) : "" : "";
+            KnownCluesAboutDestination = (player.cluesByCity != null) 
+                ? player.cluesByCity.TryGetValue(DestinationCity, out var clues) 
+                    ? string.Join("; ", clues.Select(c => Regex.Replace(c.text, "<.*?>", string.Empty))) // get the clues, but without any HTML tags
+                    : ""
+                : "";
             ViaCities = string.Join(", ", j.viaCities.Select(c => $"{c.viaCity.displayName}"));
             DepartTime = player?.DescriptionOfDaysUntilNextSailingOf(j) ?? "";
             CanDepartRightNow = player?.journeysAvailableToLeaveNow.Contains(j) ?? false;
@@ -85,8 +90,8 @@ namespace NeuroValet.StateData
                 $"{(ViaCities.IsNullOrEmpty() ? "" : $", via: [{ViaCities}]")}";
             FullContext = $"{MinimalContext}" +
                 $"\nDepart {DepartTime}, {ArrivalTime} and Cost: £{Cost.ToString()}" +
-                $"{(IsLimitedLuggage ? $"\nHas space for {j.info.luggage.luggageSlots} suitcases. Can buy extra space for £{j.info.luggage.extraLuggage.cost}." : "")}" +
-                $"{(!KnownCluesAboutDestination.IsNullOrEmpty() ? $"\nRumours about {DestinationCity.displayName}: {KnownCluesAboutDestination}." : "")}";
+                $"\nYou have {player.suitcases.Count} suitcases, and there's space for {j.info.luggage.luggageSlots} suitcases on this trip.{(IsLimitedLuggage ? $" Can buy extra space for £{j.info.luggage.extraLuggage.cost}." : "")}" +
+                $"{(!KnownCluesAboutDestination.IsNullOrEmpty() ? $"\nKnown Rumours: {KnownCluesAboutDestination}" : "")}";
         }
     }
     
