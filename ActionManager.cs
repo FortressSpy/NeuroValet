@@ -37,7 +37,7 @@ namespace NeuroValet
                 // ConverseViewParser.Instance
                 StoryViewParser.Instance,
                 // MarketAndLuggageViewParser.Instance
-                // DepartueViewParser.Instance
+                DepartureViewParser.Instance,
                 // InfocardViewParser.Instance // does this even have actions? is this the Fogg tooltip or is it something else?
                 CloudViewParser.Instance,
                 GlobeViewParser.Instance,
