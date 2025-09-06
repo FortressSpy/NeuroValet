@@ -1,11 +1,16 @@
 ﻿using BepInEx.Logging;
 using GameResources.MapData;
 using GameViews;
+using GameViews.BottomNav;
+using GameViews.Departure;
 using GameViews.InfoCard;
 using HarmonyLib;
 using NeuroValet.Actions;
 using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using static NeuroValet.ActionManager;
 
 namespace NeuroValet.ViewsParsers
@@ -15,6 +20,10 @@ namespace NeuroValet.ViewsParsers
         // Implement a singleton pattern for the GlobeViewParser
         private static readonly Lazy<GlobeViewParser> _instance = new Lazy<GlobeViewParser>(() => new GlobeViewParser());
         public static GlobeViewParser Instance => _instance.Value;
+
+        private static readonly FieldInfo CurrentSpeechBubbleViewField = AccessTools.Field(typeof(FoggPanelView), "currentSpeechBubbleView");
+        private static readonly FieldInfo BribeStateField = AccessTools.Field(typeof(FoggPanelView), "bribeState");
+        private static readonly FieldInfo ButtonsField = AccessTools.Field(typeof(FoggSpeechBubbleView), "buttons");
 
         private GlobeViewParser() { }
 
@@ -38,15 +47,35 @@ namespace NeuroValet.ViewsParsers
                     // Is this city selected? if so, we have different actions about it
                     if (selectedCity?.cityInfo.name == journey.DestinationCity.name)
                     {
-                        context.Append($" and viewing possible journey to {journey.DestinationCity.displayName}. Full journey information to it:\n{journey.FullContext}");
+                        context.AppendLine($" and viewing possible journey to {journey.DestinationCity.displayName}.");
                         if (journey.CanDepartRightNow)
                         {
                             possibleActions.Actions.Add(new EmbarkJourneyAction(journey));
                         }
                         else
                         {
-                            // TODO - negotiate if possible
+                            // Can negotiate for earlier departure?
+                            var foggPanelView = (FoggPanelView)GameViews.Static.bottomNavView?.foggPanelView;
+                            if (foggPanelView != null && foggPanelView.isActiveAndEnabled && foggPanelView.showingSpeechBubble)
+                            {
+                                var speechBubbleView = (FoggSpeechBubbleView)CurrentSpeechBubbleViewField.GetValue(foggPanelView);
+                                var bribeState = (int)BribeStateField.GetValue(foggPanelView);
+
+                                ReportNegotiationStatusInContext(context, speechBubbleView, bribeState);
+
+                                if (speechBubbleView.hasButtons)
+                                {
+                                    var buttons = (List<FoggSpeechBubbleButtonView>)ButtonsField.GetValue(speechBubbleView);
+                                    context.AppendLine(speechBubbleView.additionalFundsText.text); //hmmm
+                                    for (int i = 0; i < buttons.Count; i++)
+                                    {
+                                        possibleActions.Actions.Add(new NegotiateScheduleAction(bribeState, buttons[i], i));
+                                    }
+                                }
+                            }
                         }
+
+                        context.Append($"Full journey information:\n{journey.FullContext}");
                     }
                     else
                     {
@@ -59,6 +88,22 @@ namespace NeuroValet.ViewsParsers
             possibleActions.IsContextSilent = false;
 
             return possibleActions;
+        }
+        
+        // Report speech bubble text without any HTML tags
+        private static void ReportNegotiationStatusInContext(StringBuilder context, FoggSpeechBubbleView speechBubbleView, int bribeState)
+        {
+            // Add some extra context when items affect negotiation
+            if (bribeState == 2)
+            {
+                context.AppendLine("Negotiation status: " + Regex.Replace(speechBubbleView.speechText.text, "<.*?>", string.Empty));
+            }
+            // If can bribe, the final decision text is useless
+            // however if can't bribe, it explains why not
+            else if (bribeState != 3 || !speechBubbleView.hasButtons)
+            {
+                context.AppendLine(Regex.Replace(speechBubbleView.speechText.text, "<.*?>", string.Empty));
+            }
         }
 
         public void FocusOnPlayer()
