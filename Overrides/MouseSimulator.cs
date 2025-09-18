@@ -1,20 +1,44 @@
 ﻿using BepInEx.Logging;
 using HarmonyLib;
+using System;
+using System.Collections;
 using UnityEngine;
 
 namespace NeuroValet.Overrides
 {
-    public static class MouseSimulator
+    public class MouseSimulator : MonoBehaviour
     {
-        public static bool OverrideMouse = false;
-        public static Vector3 ForcedPos = Vector3.zero;
+        // Implement a singleton pattern for the GlobeViewParser
+        private static MouseSimulator _instance;
 
-        public static bool OverrideButtons = false;
-        public static bool[] ForcedButtons = new bool[3]; // left, right, middle
+        public static MouseSimulator Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    var obj = new GameObject("MouseSimulator");
+                    _instance = obj.AddComponent<MouseSimulator>();
+                    DontDestroyOnLoad(obj); // Optional: persists across scenes. probably unnecessary but just in case
+                }
+                return _instance;
+            }
+        }
 
-        private static Texture2D _cursorTex;
+        public bool OverrideMouse { get => overrideMouse; private set => overrideMouse = value; }
+        public Vector3 ForcedPos { get => forcedPos; private set => forcedPos = value; }
+        public bool OverrideButtons { get => overrideButtons; private set => overrideButtons = value; }
 
-        static MouseSimulator()
+        private bool overrideMouse = false;
+        private Vector3 forcedPos = Vector3.zero;
+        private bool overrideButtons = false;
+        private Texture2D _cursorTex;
+
+        private MouseSimulator()
+        {
+        }
+
+        private void Awake()
         {
             // Make a simple white square cursor texture
             _cursorTex = new Texture2D(16, 16, TextureFormat.RGBA32, false);
@@ -24,7 +48,7 @@ namespace NeuroValet.Overrides
             _cursorTex.Apply();
         }
 
-        public static void LoadCursorTexture(string filePath)
+        public void LoadCursorTexture(string filePath)
         {
             if (!System.IO.File.Exists(filePath))
             {
@@ -47,7 +71,7 @@ namespace NeuroValet.Overrides
         /// <summary>
         /// Sets the fake mouse position (screen coords, bottom-left = (0,0)).
         /// </summary>
-        public static void SetMousePosition(Vector3 pos, ManualLogSource logger = null)
+        public void SetMousePosition(Vector3 pos, ManualLogSource logger = null)
         {
             if (logger != null)
             {
@@ -61,31 +85,21 @@ namespace NeuroValet.Overrides
         /// <summary>
         /// Releases control of the mouse position to the real user.
         /// </summary>
-        public static void ReleaseMousePosition()
+        public void ReleaseMousePosition()
         {
             OverrideMouse = false;
         }
 
         /// <summary>
-        /// Sets a mouse button to pressed (true) or released (false).
-        /// </summary>
-        public static void SetMouseButton(int button, bool pressed)
-        {
-            if (button < 0 || button >= ForcedButtons.Length) return;
-            ForcedButtons[button] = pressed;
-            OverrideButtons = true;
-        }
-
-        /// <summary>
         /// Releases control of button states to the real user.
         /// </summary>
-        public static void ReleaseMouseButtons()
+        public void ReleaseMouseButtons()
         {
             OverrideButtons = false;
         }
 
         // Draw the fake cursor
-        public static void DrawCursor()
+        public void DrawCursor()
         {
             if (OverrideMouse)
             {
@@ -93,6 +107,36 @@ namespace NeuroValet.Overrides
                 var guiPos = new Vector2(ForcedPos.x, Screen.height - ForcedPos.y);
                 GUI.DrawTexture(new Rect(guiPos.x - 8, guiPos.y - 8, 48, 48), _cursorTex);
             }
+        }
+
+        internal void ToggleDebugView()
+        {
+            OverrideMouse = !OverrideMouse;
+        }
+
+        internal void DragItem(UnityEngine.Vector3 sourcePosition, UnityEngine.Vector3 targetPosition, Action OnStart, Action<bool> OnReachTarget)
+        {
+            SetMousePosition(sourcePosition); // move mouse to current item position
+            OnStart(); // hold mouse down to pick up item
+            StartCoroutine(DragItemOverTime(sourcePosition, targetPosition, OnReachTarget));
+        }
+
+        internal IEnumerator DragItemOverTime(Vector3 startPosition, Vector3 targetPosition, Action<bool> OnReachTarget)
+        {
+            float duration = 1.5f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                ForcedPos = Vector3.Lerp(startPosition, targetPosition, elapsed / duration);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // Ensure final position is set
+            ForcedPos = targetPosition;
+            OnReachTarget(true);
+            ReleaseMousePosition();
         }
     }
 
@@ -103,57 +147,9 @@ namespace NeuroValet.Overrides
     {
         static bool Prefix(ref Vector3 __result)
         {
-            if (MouseSimulator.OverrideMouse)
+            if (MouseSimulator.Instance.OverrideMouse)
             {
-                __result = MouseSimulator.ForcedPos;
-                return false;
-            }
-            return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(Input), "GetMouseButton")]
-    public static class MouseButtonPatch
-    {
-        static bool Prefix(int button, ref bool __result)
-        {
-            if (MouseSimulator.OverrideButtons && button >= 0 && button < MouseSimulator.ForcedButtons.Length)
-            {
-                __result = MouseSimulator.ForcedButtons[button];
-                return false;
-            }
-            return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(Input), "GetMouseButtonDown")]
-    public static class MouseButtonDownPatch
-    {
-        private static bool[] prevState = new bool[3];
-
-        static bool Prefix(int button, ref bool __result)
-        {
-            if (MouseSimulator.OverrideButtons && button >= 0 && button < MouseSimulator.ForcedButtons.Length)
-            {
-                __result = MouseSimulator.ForcedButtons[button] && !prevState[button];
-                prevState[button] = MouseSimulator.ForcedButtons[button];
-                return false;
-            }
-            return true;
-        }
-    }
-
-    [HarmonyPatch(typeof(Input), "GetMouseButtonUp")]
-    public static class MouseButtonUpPatch
-    {
-        private static bool[] prevState = new bool[3];
-
-        static bool Prefix(int button, ref bool __result)
-        {
-            if (MouseSimulator.OverrideButtons && button >= 0 && button < MouseSimulator.ForcedButtons.Length)
-            {
-                __result = !MouseSimulator.ForcedButtons[button] && prevState[button];
-                prevState[button] = MouseSimulator.ForcedButtons[button];
+                __result = MouseSimulator.Instance.ForcedPos;
                 return false;
             }
             return true;

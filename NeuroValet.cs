@@ -44,7 +44,7 @@ public class NeuroValet : BaseUnityPlugin
         // Load mouse debug texture
         string pluginDir = System.IO.Path.GetDirectoryName(Info.Location);
         string cursorPath = System.IO.Path.Combine(pluginDir, @"Assets\mouse-pointer.png");
-        MouseSimulator.LoadCursorTexture(cursorPath);
+        MouseSimulator.Instance.LoadCursorTexture(cursorPath);
 
         actionManager = new ActionManager(Logger);
 
@@ -91,11 +91,15 @@ public class NeuroValet : BaseUnityPlugin
         }
         if (Input.GetKeyDown(KeyCode.F2))
         {
-            MouseSimulator.DrawCursor();
+            MouseSimulator.Instance.ToggleDebugView();
         }
         if (Input.GetKeyDown(KeyCode.F3))
         {
             CloudViewParser.Instance.SkipTime();
+        }
+        if (Input.GetKeyDown(KeyCode.F4))
+        {
+            MouseSimulator.Instance.SetMousePosition(new Vector3(Screen.width / 2, Screen.height / 2, 0), Logger);
         }
     }
 
@@ -161,7 +165,7 @@ public class NeuroValet : BaseUnityPlugin
     void OnGUI()
     {
         gameDataForm.Draw();
-        MouseSimulator.DrawCursor();
+        MouseSimulator.Instance.DrawCursor();
     }
 
     private void UnregisterActionWindow()

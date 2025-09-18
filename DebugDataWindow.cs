@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class DebugDataWindow
 {
-    private bool showWindow = true; // Tracks whether the window is visible
+    private bool showWindow = false; // Tracks whether the window is visible
     private Rect windowRect = new Rect(20, 20, 1000, 800); // Default size
 
     // Add scroll positions for scrollable areas
