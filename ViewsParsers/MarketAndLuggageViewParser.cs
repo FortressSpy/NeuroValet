@@ -1,14 +1,12 @@
 ﻿
 using BepInEx.Logging;
 using Game.Luggage;
-using GameViews.Departure;
 using GameViews.Item;
 using GameViews.Market;
 using HarmonyLib;
 using NeuroValet.Actions;
 using NeuroValet.Overrides;
 using System;
-using System.Collections;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -18,6 +16,12 @@ namespace NeuroValet.ViewsParsers
 {
     internal class MarketAndLuggageViewParser : IViewParser
     {
+        internal struct MoveToData
+        {
+            public int moveToSuitcaseNumber;
+            public SuitcasePosition moveToPosition;
+        }
+
         // Implement a singleton pattern for the GlobeViewParser
         private static readonly Lazy<MarketAndLuggageViewParser> _instance = new Lazy<MarketAndLuggageViewParser>(() => new MarketAndLuggageViewParser());
         public static MarketAndLuggageViewParser Instance => _instance.Value;
@@ -56,7 +60,7 @@ namespace NeuroValet.ViewsParsers
 
             // TODO Get items available to buy in market (if in market view), and add buy action for each
 
-            // TODO - add action to close the market/luggage view and return to previous view (probably call OnLuggageButtonClicked())
+            // Add action to close the market/luggage view and return to previous view (probably call OnLuggageButtonClicked())
             possibleActions.Actions.Add(new LuggageCloseWindowAction());
 
             possibleActions.Context = context.ToString();
@@ -67,7 +71,8 @@ namespace NeuroValet.ViewsParsers
 
         private static void GetContextAndActionsOnLuggage(PossibleActions possibleActions, MarketAndLuggageView view, StringBuilder context, ManualLogSource logger)
         {
-            context.AppendLine("Your current luggage (remember that non-reported slots within these suitcases are empty):");
+            context.AppendLine("Your current luggage (remember that non-reported slots within these suitcases are empty, and each suitcase has 2 rows and 4 slots):");
+
             // Get current items in luggage, and add sell action for each
             for (int i = 0; i < view.luggageView.suitcases.Count; i++)
             {
@@ -107,8 +112,8 @@ namespace NeuroValet.ViewsParsers
                     context.Append($"{(item.quantity <= 1 ? "" : $"{item.quantity} ")}{item.item.displayName}");
                     context.AppendLine($" - {TextGen.DetailTextForItem(item.item)}");
 
-                    // TODO add action for selling this item
                     possibleActions.Actions.Add(new LuggageMoveItemAction(item, view.luggageView.suitcases, i, itemSlot));
+                    possibleActions.Actions.Add(new LuggageSellItemAction(itemSlot));
                 }
             }
         }
@@ -130,6 +135,17 @@ namespace NeuroValet.ViewsParsers
 
             // Drag item over time to new position
             MouseSimulator.Instance.DragItem(itemCurrentPosition, itemTargetPosition, 
+                (Action)itemViewHold.CreateDelegate(typeof(Action), itemCurrentSpot.item), itemCurrentSpot.item.Release);
+        }
+
+        public void SellItem(ItemSlot itemCurrentSpot)
+        {
+            var view = (MarketAndLuggageView)GameViews.Static.marketAndLuggageView;
+
+            var itemCurrentPosition = itemCurrentSpot.uiCamera.WorldToScreenPoint(itemCurrentSpot.rectTransform.position);
+
+            // Drag item over time to new position a decent bit above current position to sell it (basically anywhere outside luggage area)
+            MouseSimulator.Instance.DragItem(itemCurrentPosition, itemCurrentPosition + new UnityEngine.Vector3(0, 400),
                 (Action)itemViewHold.CreateDelegate(typeof(Action), itemCurrentSpot.item), itemCurrentSpot.item.Release);
         }
 

@@ -11,13 +11,7 @@ using System.Collections.Generic;
 
 namespace NeuroValet.Actions
 {
-    internal struct MoveToData
-    {
-        public int moveToSuitcaseNumber;
-        public SuitcasePosition moveToPosition;
-    }
-
-    internal class LuggageMoveItemAction : NeuroSdk.Actions.NeuroAction<MoveToData>
+    internal class LuggageMoveItemAction : NeuroSdk.Actions.NeuroAction<MarketAndLuggageViewParser.MoveToData>
     {
 
         private readonly InventoryItem item;
@@ -57,37 +51,35 @@ namespace NeuroValet.Actions
             this.itemSlot = itemSlot;
 
             this.name = $"move_{item.item.displayName}";
-            //var itemPriceHere = GameData.Static.markets.SalePriceOfItemInCity(item.item, Game.Static.player?.currentCity).pounds;
-            //this.description = $"Sell {item.item.displayName} for £{itemPriceHere}, or Move it to another slot";
             this.description = $"Move {item.item.displayName} that's currently in suitcase {suitcaseNumber} at row {item.position.y} and slot {item.position.x}";
         }
 
-        protected override ExecutionResult Validate(ActionJData actionData, out MoveToData parsedData)
+        protected override ExecutionResult Validate(ActionJData actionData, out MarketAndLuggageViewParser.MoveToData parsedData)
         {
             if (MarketAndLuggageViewParser.Instance.IsViewRelevant())
             {
                 uint? suitcase = actionData.Data?["move_to_suitcase_number"]?.Value<uint>();
                 if (suitcase == null)
                 {
-                    parsedData = new MoveToData();
+                    parsedData = new MarketAndLuggageViewParser.MoveToData();
                     return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedMissingRequiredParameter.Format("move_to_suitcase_number"));
                 }
 
                 uint? row = actionData.Data?["move_to_row_number"]?.Value<uint>();
                 if (row == null)
                 {
-                    parsedData = new MoveToData();
+                    parsedData = new MarketAndLuggageViewParser.MoveToData();
                     return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedMissingRequiredParameter.Format("move_to_row_number"));
                 }
 
                 uint? slot = actionData.Data?["move_to_slot_number"]?.Value<uint>();
                 if (slot == null)
                 {
-                    parsedData = new MoveToData();
+                    parsedData = new MarketAndLuggageViewParser.MoveToData();
                     return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedMissingRequiredParameter.Format("move_to_slot_number"));
                 }
 
-                parsedData = new MoveToData()
+                parsedData = new MarketAndLuggageViewParser.MoveToData()
                 {
                     moveToSuitcaseNumber = (int)suitcase.Value,
                     moveToPosition = new SuitcasePosition((int)slot.Value, (int)row.Value),
@@ -131,12 +123,12 @@ namespace NeuroValet.Actions
             {
                 // This shouldn't happen. Maybe had some timed stuff and action hasn't unregistered in time before neuro decided to do it
                 // Or user did some input outside neuro's control?
-                parsedData = new MoveToData();
+                parsedData = new MarketAndLuggageViewParser.MoveToData();
                 return ExecutionResult.Failure(NeuroSdkStrings.ActionFailedUnregistered);
             }
         }
 
-        protected override void Execute(MoveToData parsedData)
+        protected override void Execute(MarketAndLuggageViewParser.MoveToData parsedData)
         {
             MarketAndLuggageViewParser.Instance.DragItem(itemSlot, parsedData);
         }

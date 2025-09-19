@@ -123,7 +123,7 @@ namespace NeuroValet.Overrides
 
         internal IEnumerator DragItemOverTime(Vector3 startPosition, Vector3 targetPosition, Action<bool> OnReachTarget)
         {
-            float duration = 1.5f;
+            float duration = 1.25f;
             float elapsed = 0f;
 
             while (elapsed < duration)
