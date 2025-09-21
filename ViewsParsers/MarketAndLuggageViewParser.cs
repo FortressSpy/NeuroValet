@@ -54,11 +54,10 @@ namespace NeuroValet.ViewsParsers
             if (view.mode == GameViews.Market.MarketAndLuggageViewMode.MarketAndLuggage)
             {
                 context.AppendLine("You are also looking at the market, which lets you buy new items");
+                GetContextAndActionsOnMarket(possibleActions, view, context, logger);
             }
 
             GetContextAndActionsOnLuggage(possibleActions, view, context, logger);
-
-            // TODO Get items available to buy in market (if in market view), and add buy action for each
 
             // Add action to close the market/luggage view and return to previous view (probably call OnLuggageButtonClicked())
             possibleActions.Actions.Add(new LuggageCloseWindowAction());
@@ -67,6 +66,24 @@ namespace NeuroValet.ViewsParsers
             possibleActions.IsContextSilent = false;
 
             return possibleActions;
+        }
+
+        private void GetContextAndActionsOnMarket(PossibleActions possibleActions, MarketAndLuggageView view, StringBuilder context, ManualLogSource logger)
+        {
+            var marketItemSlots = view.marketView.marketItemGrid.rows.SelectMany(x => x.itemSlots).ToList();
+            for (int i = 0; i < marketItemSlots.Count; i++)
+            {
+                var itemSlot = marketItemSlots[i];
+                if (itemSlot == null || itemSlot.item == null)
+                {
+                    logger.LogError($"Couldn't find full data for a market item. Is user manually holding an item?");
+                    continue;
+                }
+                var item = itemSlot.item.item;
+                var itemPriceHere = GameData.Static.markets.MarketPriceOfItemInCity(item, Game.Static.player?.currentCity, true).pounds;
+                context.AppendLine($"Market Item {i}: {item.displayName} - {TextGen.DetailTextForItem(item)} - £{itemPriceHere}");
+                possibleActions.Actions.Add(new LuggageBuyItemAction(itemSlot, view.luggageView.suitcases));
+            }
         }
 
         private static void GetContextAndActionsOnLuggage(PossibleActions possibleActions, MarketAndLuggageView view, StringBuilder context, ManualLogSource logger)
@@ -80,7 +97,8 @@ namespace NeuroValet.ViewsParsers
                 context.AppendLine($"Suitcase {i}:");
                 if (suitcase.ghost)
                 {
-                    context.AppendLine("You can purchase this suitcase by putting an item in here.");
+                    var suitcasePriceHere = TextGen.Money.PriceInPounds(GameData.Static.markets.PriceOfSuitcaseInMarket(Game.Static.player?.currentCity));
+                    context.AppendLine($"You can purchase this suitcase for {suitcasePriceHere} by putting an item in it.");
                     continue;
                 }
                 if (suitcase.suitcase.isEmpty)
