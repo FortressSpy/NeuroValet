@@ -6,6 +6,7 @@ using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using static NeuroValet.ActionManager;
 using static NeuroValet.Actions.StoryAction;
@@ -23,6 +24,8 @@ namespace NeuroValet.ViewsParsers
             .GetField("_contents", BindingFlags.NonPublic | BindingFlags.Instance);
         FieldInfo storyChoices = typeof(StoryViewContents)
             .GetField("_contentChoiceElements", BindingFlags.NonPublic | BindingFlags.Instance);
+        FieldInfo storyFlowElements = typeof(StoryViewContents)
+            .GetField("_contentFlowElements", BindingFlags.NonPublic | BindingFlags.Instance);
 
         private StoryView _storyView;
 
@@ -35,9 +38,10 @@ namespace NeuroValet.ViewsParsers
         {
             PossibleActions possibleActions = new PossibleActions();
             possibleActions.Actions = new List<INeuroAction>();
+            string addedContext = "";
             if (IsViewRelevant()) // make sure the story view is still relevant, even though this was probably called before
             {
-                var choices = GetAvailableChoices();
+                var choices = GetAvailableChoices(ref addedContext);
 
                 foreach (var choice in choices)
                 {
@@ -45,7 +49,8 @@ namespace NeuroValet.ViewsParsers
                 }
             }
 
-            possibleActions.Context = StoryViewParser.Instance.GetStoryText() + " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
+            possibleActions.Context = addedContext + StoryViewParser.Instance.GetStoryText() +
+                " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
             possibleActions.IsContextSilent = false;
             return possibleActions;
         }
@@ -118,7 +123,7 @@ namespace NeuroValet.ViewsParsers
             return Regex.Replace(storyText, "<.*?>", string.Empty); // Remove any HTML tags (game uses it to format the text)
         }
 
-        private List<ChoiceData> GetAvailableChoices()
+        private List<ChoiceData> GetAvailableChoices(ref string addedContext)
         {
             StoryViewContents contents = (StoryViewContents)storyViewContents.GetValue(_storyView);
             IList<StoryChoiceElement> choices = (IList<StoryChoiceElement>)storyChoices.GetValue(contents);
@@ -127,6 +132,15 @@ namespace NeuroValet.ViewsParsers
             // If there are no choices but the story is still going, we can assume the "Continue" (=finish story?) choice is available
             if (choices.Count == 0)
             {
+                // Probably newspaper story. add the headline text in that case to context
+                IList<StoryViewElement> flowElements = (IList<StoryViewElement>)storyFlowElements.GetValue(contents);
+                StringBuilder context = new StringBuilder();
+                foreach (var flowElement in flowElements)
+                {
+                    context.Append(flowElement.textComponent?.text);
+                }
+                addedContext = context.ToString();
+
                 // only continue element is available probabaly, add it as the single available choice
                 choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)", IsContinueChoice = true }); // TODO - will neuro say something? this should be silent...
             }
