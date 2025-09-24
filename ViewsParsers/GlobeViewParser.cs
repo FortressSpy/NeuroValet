@@ -66,7 +66,6 @@ namespace NeuroValet.ViewsParsers
                                 if (speechBubbleView.hasButtons)
                                 {
                                     var buttons = (List<FoggSpeechBubbleButtonView>)ButtonsField.GetValue(speechBubbleView);
-                                    context.AppendLine(speechBubbleView.additionalFundsText.text); //hmmm
                                     for (int i = 0; i < buttons.Count; i++)
                                     {
                                         possibleActions.Actions.Add(new NegotiateScheduleAction(bribeState, buttons[i], i));
@@ -103,6 +102,12 @@ namespace NeuroValet.ViewsParsers
             else if (bribeState != 3 || !speechBubbleView.hasButtons)
             {
                 context.AppendLine(Regex.Replace(speechBubbleView.speechText.text, "<.*?>", string.Empty));
+            }
+            else if (bribeState == 3)
+            {
+                // explain that in addition to the negotiation cost there is the ticket cost
+                context.AppendLine("Can pay for an earlier departure, but remember, " 
+                    + speechBubbleView.additionalFundsText.text);
             }
         }
 

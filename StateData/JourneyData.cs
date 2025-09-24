@@ -1,4 +1,6 @@
 ﻿using GameResources.MapData;
+using GameResources.MapData.RouteFinder;
+using GameViews.Globe.Impl;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -68,11 +70,13 @@ namespace NeuroValet.StateData
             // Not implementing free mouse control and hovering for Neuro, so will only be available when focusing on a city
             // This kinda means to have enough data she'll have to click on cities and go through all of the routes, which is probably good for viewer visibility anyway
             var routeToDestination = player.routeFinder?.RouteTo(DestinationCity);
-            if (routeToDestination != null) 
+            if (routeToDestination != null)
             {
+                int journeyLength = routeToDestination.arrivalDayNumber - 1 - (int)GameData.Static.clock.currentTime.days;
+
                 ArrivalTime = routeToDestination.approximated 
-                    ? TextGen.Calendar.ApproximateNumberOfDaysInWords(routeToDestination.arrivalDayNumber) 
-                    : TextGen.Calendar.ArrivalDay(routeToDestination.arrivalDayNumber, Game.Static.player.dayOfWeek);
+                    ? TextGen.Calendar.ApproximateNumberOfDaysInWords(journeyLength) 
+                    : TextGen.Calendar.ArrivalDay(journeyLength, Game.Static.player.dayOfWeek);
             }
 
             DebugText = $"Name: {Name}. Route Name: {RouteName}. Unspecifically named: {j.unspecificallyNamed}\n" +
@@ -89,7 +93,7 @@ namespace NeuroValet.StateData
             MinimalContext = $"{Name}. {TransportType} going from {StartCity} to {DestinationCity.displayName}" +
                 $"{(ViaCities.IsNullOrEmpty() ? "" : $", via: [{ViaCities}]")}";
             FullContext = $"{MinimalContext}" +
-                $"\nDepart {DepartTime}, {ArrivalTime} and Cost: £{Cost.ToString()}" +
+                $"\nDepart {DepartTime}; Arrival: {ArrivalTime}; Cost: £{Cost.ToString()}" +
                 $"\nYou have {player.suitcases.Count} suitcases, and there's space for {j.info.luggage.luggageSlots} suitcases on this trip.{(IsLimitedLuggage ? $" Can buy extra space for £{j.info.luggage.extraLuggage.cost}." : "")}" +
                 $"{(!KnownCluesAboutDestination.IsNullOrEmpty() ? $"\nKnown Rumours: {KnownCluesAboutDestination}" : "")}";
         }

@@ -4,6 +4,7 @@ using NeuroSdk.Actions;
 using NeuroSdk.Json;
 using NeuroSdk.Websocket;
 using NeuroValet.ViewsParsers;
+using System.Text.RegularExpressions;
 
 namespace NeuroValet.Actions
 {
@@ -27,7 +28,7 @@ namespace NeuroValet.Actions
         }
 
         public override string Name => "story_decision_" + _choiceData.ChoiceIndex;
-        protected override string Description => _choiceData.ChoiceText;
+        protected override string Description => Regex.Replace(_choiceData.ChoiceText, "<.*?>", string.Empty);
 
         protected override JsonSchema Schema => new()
         {

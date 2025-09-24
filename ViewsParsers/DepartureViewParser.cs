@@ -8,7 +8,6 @@ using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using static NeuroValet.ActionManager;
@@ -109,8 +108,8 @@ namespace NeuroValet.ViewsParsers
                         else
                         {
                             var luggageCapacityReport = TextGen.Luggage.LuggageExtraCapacityFor(departureView.journey);
-                            context.AppendLine($"However you cannot travel due to health status. (Game is saying {luggageCapacityReport})");
-                            
+                            context.AppendLine($"However you cannot travel due to luggage. (Game is saying {luggageCapacityReport})");
+
                             // Can either buy more luggage space, or remove some luggage
                             possibleActions.Actions.Add(new DepartureOpenLuggageAction());
 
@@ -131,6 +130,10 @@ namespace NeuroValet.ViewsParsers
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        context.AppendLine($"You cannot travel this route due to health risk");
                     }
                 }
                 else

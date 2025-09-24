@@ -81,7 +81,7 @@ namespace NeuroValet.ViewsParsers
                 }
                 var item = itemSlot.item.item;
                 var itemPriceHere = GameData.Static.markets.MarketPriceOfItemInCity(item, Game.Static.player?.currentCity, true).pounds;
-                context.AppendLine($"Market Item {i}: {item.displayName} - {TextGen.DetailTextForItem(item)} - £{itemPriceHere}");
+                context.AppendLine($"Market Item {i}: {item.displayName} - {TextGen.DetailTextForItem(item)} - £{itemPriceHere}. Needs {item.stats.size} slots");
                 possibleActions.Actions.Add(new LuggageBuyItemAction(itemSlot, view.luggageView.suitcases));
             }
         }
@@ -138,6 +138,7 @@ namespace NeuroValet.ViewsParsers
 
         public void DragItem(ItemSlot itemCurrentSpot, MoveToData moveToData)
         {
+            // TODO it seems 4 slots items don't move properly. Need to move them a bit further to get them in the right place (at least when moving from market to suitcase 2)
             var view = (MarketAndLuggageView)GameViews.Static.marketAndLuggageView;
             var targetSuitcaseView = view.luggageView.suitcases[moveToData.moveToSuitcaseNumber];
 
@@ -147,7 +148,17 @@ namespace NeuroValet.ViewsParsers
             // (most itemContainer suitcase position calculations are a bit broken,
             // so have to go through local position, then properly transform to world, then to camera)
             UnityEngine.Vector2 itemTargetLocalPosition = targetSuitcaseView.itemContainer.SuitcasePositionToLocalPosition(moveToData.moveToPosition);
-            itemTargetLocalPosition += new UnityEngine.Vector2(30, 0); // offset a bit to the right to make sure we're in the slot, not on the border
+
+            // offset a bit to the right to make sure we're in the slot, not on the border. Depends on size of item
+            if (itemCurrentSpot.item.item.stats.size == 4)
+            {
+                itemCurrentPosition += new UnityEngine.Vector3(60, 0);
+                itemTargetLocalPosition += new UnityEngine.Vector2(100, 20);
+            }
+            else
+            {
+                itemTargetLocalPosition += new UnityEngine.Vector2(30, 0);
+            }
             UnityEngine.Vector3 itemTargetWorldPosition = targetSuitcaseView.itemContainer.rectTransform.TransformPoint(itemTargetLocalPosition);
             UnityEngine.Vector3 itemTargetPosition = itemCurrentSpot.uiCamera.WorldToScreenPoint(itemTargetWorldPosition);
 
