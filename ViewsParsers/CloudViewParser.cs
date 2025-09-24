@@ -59,7 +59,7 @@ namespace NeuroValet.ViewsParsers
         {
             ActionManager.PossibleActions possibleActions = new ActionManager.PossibleActions();
             possibleActions.Context = $"You are on a journey to " +
-                $"{currentStateData.Journey.ActiveJourney.DestinationCity.displayName}." +
+                $"{currentStateData.Journey.ActiveJourney.DestinationCity.displayName}. " +
                 $"During a journey you may do some optional actions, but have a limited time to do them.";
             possibleActions.IsContextSilent = true;
 

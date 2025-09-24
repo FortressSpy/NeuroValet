@@ -26,8 +26,18 @@ namespace NeuroValet.Actions
             this.itemSlot = itemSlot;
 
             this.name = $"sell_{itemSlot.item.item.displayName}";
-            var itemPriceHere = GameData.Static.markets.SalePriceOfItemInCity(itemSlot.item.item, Game.Static.player?.currentCity).pounds;
-            this.description = $"Sell {itemSlot.item.item.displayName} for £{itemPriceHere}";
+            var currentCity = Game.Static.player?.currentCity;
+            if (currentCity != null)
+            {
+                var itemPriceHere = GameData.Static.markets.SalePriceOfItemInCity(itemSlot.item.item, currentCity).pounds;
+                this.description = $"Sell {itemSlot.item.item.displayName} for £{itemPriceHere}";
+            }
+            else
+            {
+                // opened luggage while outside a city. this is probably due to just user action, as neuro shouldn't be able to do it
+                // Mostly implemented to avoid crashes due to this.
+                this.description = $"Discard {itemSlot.item.item.displayName})";
+            }
         }
 
         protected override ExecutionResult Validate(ActionJData actionData)
