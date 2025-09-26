@@ -1,6 +1,7 @@
 ﻿using BepInEx.Logging;
 using NeuroSdk.Actions;
 using NeuroValet.ViewsParsers;
+using System;
 using System.Collections.Generic;
 
 namespace NeuroValet
@@ -55,14 +56,22 @@ namespace NeuroValet
 
             bool foundActions = false;
             int i = 0;
-            while (!foundActions && viewParsers.Count > i)
+            try
             {
-                if (viewParsers[i].IsViewRelevant())
+                while (!foundActions && viewParsers.Count > i)
                 {
-                    actions = viewParsers[i].GetPossibleActions(logger);
-                    foundActions = true;
+                    if (viewParsers[i].IsViewRelevant())
+                    {
+                        actions = viewParsers[i].GetPossibleActions(logger);
+                        foundActions = true;
+                    }
+                    i++;
                 }
-                i++;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed to parse possible actions. Might need user intervention to get pass the current state");
+                logger.LogError(ex);
             }
 
             return actions;
