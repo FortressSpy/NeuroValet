@@ -5,7 +5,6 @@
         public GeneralGameData GeneralData { get; set; }
         public PlayerData Player { get; set; }
         public CityData City { get; set; }
-        // public ClockData Clock { get; set; }
         public JourneyData Journey { get; set; }
     }
 }

@@ -29,7 +29,6 @@ namespace NeuroValet
             currentStateData.GeneralData = GetGeneralData();
             currentStateData.Player = GetPlayerData();
             currentStateData.City = GetCityData();
-            // currentStateData.Luggage = GetLuggageData();
             currentStateData.Journey = GetJourneyData();
         }
 
