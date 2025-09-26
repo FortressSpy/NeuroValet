@@ -61,26 +61,6 @@ namespace NeuroValet.ViewsParsers
             return possibleActions;
         }
 
-        public void ExecuteAction(int actionIndex)
-        {
-        }
-
-        public bool HasAction(int actionIndex)
-        {
-            // Check if there is even a conversation still going on
-            if (IsViewRelevant())
-            {
-                // TODO - check if option is valid to do
-            }
-
-            return false;
-        }
-
-        public void CloseConversation()
-        {
-            this._conversationView.OnCloseButtonClicked();
-        }
-
         // Is there a story going on right now?
         public bool IsViewRelevant()
         {

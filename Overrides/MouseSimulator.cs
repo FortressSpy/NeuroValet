@@ -33,6 +33,7 @@ namespace NeuroValet.Overrides
         private Vector3 forcedPos = Vector3.zero;
         private bool overrideButtons = false;
         private Texture2D _cursorTex;
+        private bool drawDebugMousePointer = false;
 
         private MouseSimulator()
         {
@@ -101,7 +102,7 @@ namespace NeuroValet.Overrides
         // Draw the fake cursor
         public void DrawCursor()
         {
-            if (OverrideMouse)
+            if (OverrideMouse && drawDebugMousePointer)
             {
                 // Unity GUI Y-axis is inverted from Input.mousePosition
                 var guiPos = new Vector2(ForcedPos.x, Screen.height - ForcedPos.y);
@@ -110,6 +111,11 @@ namespace NeuroValet.Overrides
         }
 
         internal void ToggleDebugView()
+        {
+            drawDebugMousePointer = !drawDebugMousePointer;
+        }
+
+        internal void ToggleOverrideMouse()
         {
             OverrideMouse = !OverrideMouse;
         }

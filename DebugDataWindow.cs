@@ -83,32 +83,7 @@ public class DebugDataWindow
         GUILayout.Label("<b>Historic Path</b>", GetLabelStyle());
         GUILayout.Label(GetVisitedCities(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
 
-        //GUILayout.Space(5);
-
-        //GUILayout.Label("<b>Text Data</b>", GetLabelStyle());
-        //GUILayout.Label(GetStoryData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
-
-        //GUILayout.Space(3);
-
-        //GUILayout.Label("<b>Market</b>", GetLabelStyle());
-        //GUILayout.Label(GetMarketData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
         GUILayout.EndVertical();
-
-        // Right Section: Available Choices and Luggage
-        //GUILayout.BeginVertical(GUILayout.Width(300));
-        //GUILayout.Label("<b>Available Choices</b>", GetLabelStyle());
-        //choicesScrollPos = GUILayout.BeginScrollView(choicesScrollPos, GUILayout.Height(350));
-        //GUILayout.TextArea(GetChoicesData(), GetChoicesAreaStyle(), GUILayout.ExpandHeight(true));
-        //GUILayout.EndScrollView();
-
-        //GUILayout.Space(2);
-
-        //GUILayout.Label("<b>Luggage</b>", GetLabelStyle());
-        //luggageScrollPos = GUILayout.BeginScrollView(luggageScrollPos, GUILayout.Height(100));
-        //GUILayout.Label(GetLuggageData(), GetInfoAreaStyle(), GUILayout.ExpandHeight(true));
-        //GUILayout.EndScrollView();
-
-        //GUILayout.EndVertical();
 
         GUILayout.EndHorizontal();
 
@@ -188,75 +163,6 @@ public class DebugDataWindow
 
         return journeysData.ToString();
     }
-
-    //private string GetMarketData()
-    //{
-    //    if (player == null)
-    //        return "Market data not available.";
-    //    else if (!player.currentCityHasMarket)
-    //        return "City does not have a market.";
-    //    else if (player.currentCity?.name != "London" && player.marketIsShut)
-    //        return "Market is currently shut.";
-
-    //    var market = player.marketForCurrentCity;
-    //    StringBuilder marketReport = new StringBuilder();
-    //    marketReport.Append($"Market Name: {player.currentCity.market.marketName}\n");
-    //    if (market.sellsCases)
-    //    {
-    //        var marketCasePrice = GameData.Static.markets.PriceOfSuitcaseInMarket(player.currentCity);
-    //        bool canBuy = player.money > marketCasePrice;
-
-    //        marketReport.Append($"Buy case for {marketCasePrice.pounds}£.\n");
-    //    }
-    //    else
-    //    {
-    //        marketReport.Append("Market does not sell cases.\n");
-    //    }
-
-    //    marketReport.Append($"Items: \n");
-    //    foreach (var item in market.items)
-    //    {
-    //        bool canBuy = player.CanBuyItemAtPrice(item.item, item.price);
-
-    //        GUILayout.BeginHorizontal();
-    //        GUI.enabled = canBuy; // Enable or disable the button based on the condition
-    //        if (GUILayout.Button($"Buy {item.item.name} - Price: {item.price.pounds}", GUILayout.Width(300)))
-    //        {
-    //            player.SlotsAvailableInSuitcaseAtIndex(0);
-    //            player.BuyItemFromMarket(item.item, item.price, player.suitcases[0], new SuitcasePosition(0,0)); // TODO figure out open slots
-    //        }
-    //        GUI.enabled = true; // Re-enable GUI for other elements
-    //        GUILayout.EndHorizontal();
-    //    }
-
-    //    return marketReport.ToString();
-    //}
-
-    //private string GetLuggageData()
-    //{
-    //    if (player == null)
-    //        return "Luggage data not available.";
-    //    StringBuilder luggageInfo = new StringBuilder();
-
-    //    for (int i = 0; i < player.suitcases.Count; i++)
-    //    {
-    //        luggageInfo.Append($"Suitcase {i + 1}:\n");
-    //        for (int j = 0; j < player.suitcases[i].contents.Count; j++)
-    //        {
-    //            var contents = player.suitcases[i].contents[j];
-    //            luggageInfo.Append($"  {contents.quantity} ");
-    //            luggageInfo.Append($"{contents.item.displayName} ({contents.item.nameOfSet})");
-
-    //            luggageInfo.Append("[");
-    //            if (contents.isValuableHere) luggageInfo.Append("V");
-    //            if (contents.item.canBeUsed) luggageInfo.Append("U");
-    //            luggageInfo.Append("]\n");
-    //        }
-    //    }
-    //    return luggageInfo.ToString();
-    //}
-
-
     private string GetViewsData()
     {
         var gameViews = GameViews.Static.gameViews;

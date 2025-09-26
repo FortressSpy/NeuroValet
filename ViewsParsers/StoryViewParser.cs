@@ -2,7 +2,6 @@
 using GameViews.Story;
 using NeuroSdk.Actions;
 using NeuroValet.Actions;
-using NeuroValet.StateData;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -50,7 +49,7 @@ namespace NeuroValet.ViewsParsers
             }
 
             possibleActions.Context = addedContext + StoryViewParser.Instance.GetStoryText() +
-                " (You have to choose how to respond this)"; // TODO - will this part be silent? does Neuro even need this prompt?
+                " (You have to choose how to respond to this)"; // TODO - will this part be silent? does Neuro even need this prompt?
             possibleActions.IsContextSilent = false;
             return possibleActions;
         }
@@ -132,7 +131,8 @@ namespace NeuroValet.ViewsParsers
             // If there are no choices but the story is still going, we can assume the "Continue" (=finish story?) choice is available
             if (choices.Count == 0)
             {
-                // Probably newspaper story. add the headline text in that case to context
+                // Might be a newspaper. if so add it's headline to context for Neuro
+                // (newspaper are implemnted as a Story with no choices by the game)
                 IList<StoryViewElement> flowElements = (IList<StoryViewElement>)storyFlowElements.GetValue(contents);
                 StringBuilder context = new StringBuilder();
                 foreach (var flowElement in flowElements)
@@ -142,7 +142,7 @@ namespace NeuroValet.ViewsParsers
                 addedContext = context.ToString();
 
                 // only continue element is available probabaly, add it as the single available choice
-                choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)", IsContinueChoice = true }); // TODO - will neuro say something? this should be silent...
+                choicesResult.Add(new ChoiceData { ChoiceIndex = 1, ChoiceText = "(Continue)", IsContinueChoice = true });
             }
             else
             {

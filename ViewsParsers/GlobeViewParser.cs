@@ -35,7 +35,6 @@ namespace NeuroValet.ViewsParsers
             StringBuilder context = new StringBuilder();
             context.AppendLine("You are looking at the globe view, where you can see your current city and other cities you can travel to.");
 
-            // TODO is there anything in the globe view parser that should happen outside of being in a city?
             if (StateReporter.Instance.CurrentStateData.City.IsInCity)
             {
                 string currentCityName = StateReporter.Instance.CurrentStateData.City.CityName;
@@ -81,6 +80,12 @@ namespace NeuroValet.ViewsParsers
                         possibleActions.Actions.Add(new SelectJourneyAction(journey));
                     }
                 }
+            }
+            else
+            {
+                logger.LogWarning("Trying to get actions from GlobeViewParser outside a city. This is unexpected.");
+                logger.LogDebug("Current City (probably empty):" + StateReporter.Instance.CurrentStateData.City.CityName);
+                logger.LogDebug("Current Journey:" + StateReporter.Instance.CurrentStateData.Journey.ActiveJourney.DebugText);
             }
 
             possibleActions.Context = context.ToString();

@@ -60,7 +60,7 @@ namespace NeuroValet.Overrides
             }
 
             // Log information about the clock layer and target time
-            PrintTimestack(__instance);
+            //PrintTimestack(__instance);
             //Logger?.LogDebug($"New Clock layer: {layer}, Real seconds per hour: {realSecondsPerHour}\n");
 
             return true;
@@ -81,12 +81,12 @@ namespace NeuroValet.Overrides
                 var layer = kvp.Key; // ClockLayer
                 var element = kvp.Value; // TimeStackElement (boxed)
 
-                //Logger.LogDebug($"Layer: {layer}");
+                Logger.LogDebug($"Layer: {layer}");
 
                 foreach (var field in elementType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
                 {
                     var value = field.GetValue(element);
-                    //Logger.LogDebug($"  {field.Name} = {value}");
+                    Logger.LogDebug($"  {field.Name} = {value}");
                 }
             }
         }

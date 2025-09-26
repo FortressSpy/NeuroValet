@@ -9,7 +9,6 @@ using NeuroValet.Overrides;
 using NeuroValet.ViewsParsers;
 using System;
 using System.Collections;
-using System.Text;
 using UnityEngine;
 
 namespace NeuroValet;
@@ -64,7 +63,6 @@ public class NeuroValet : BaseUnityPlugin
             isReady = true;
             Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} launched. Web socket set to: {configWebSocketUrl.Value}");
 
-            // TODO - improve the context. Ask how much should be here (explanation of the game mechanics? world? tips (like how much money you generally need)?
             Context.Send(
                 "You are playing as Pasepartout, a french valet. This is the year 1872. New weird steampunk technology is starting to spread, " +
                 "and your new master, Phileas Fogg, has just made a massive bet to travel the world in 80 days or less, starting from London.");
@@ -95,11 +93,7 @@ public class NeuroValet : BaseUnityPlugin
         }
         if (Input.GetKeyDown(KeyCode.F3))
         {
-            CloudViewParser.Instance.SkipTime();
-        }
-        if (Input.GetKeyDown(KeyCode.F4))
-        {
-            MouseSimulator.Instance.SetMousePosition(new Vector3(Screen.width / 2, Screen.height / 2, 0), Logger);
+            MouseSimulator.Instance.ToggleOverrideMouse();
         }
     }
 

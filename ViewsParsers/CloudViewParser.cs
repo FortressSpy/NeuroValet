@@ -60,7 +60,7 @@ namespace NeuroValet.ViewsParsers
             ActionManager.PossibleActions possibleActions = new ActionManager.PossibleActions();
             possibleActions.Context = $"You are on a journey to " +
                 $"{currentStateData.Journey.ActiveJourney.DestinationCity.displayName}. " +
-                $"During a journey you may do some optional actions, but have a limited time to do them.";
+                $"During the journey you might get some story prompts, as well as some optional time-limited actions.";
             possibleActions.IsContextSilent = true;
 
             CloudViewIcons icons = (CloudViewIcons)iconsField.GetValue(cloudView);

@@ -138,7 +138,6 @@ namespace NeuroValet.ViewsParsers
 
         public void DragItem(ItemSlot itemCurrentSpot, MoveToData moveToData)
         {
-            // TODO it seems 4 slots items don't move properly. Need to move them a bit further to get them in the right place (at least when moving from market to suitcase 2)
             var view = (MarketAndLuggageView)GameViews.Static.marketAndLuggageView;
             var targetSuitcaseView = view.luggageView.suitcases[moveToData.moveToSuitcaseNumber];
 
