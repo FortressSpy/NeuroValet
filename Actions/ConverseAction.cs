@@ -17,6 +17,8 @@ namespace NeuroValet.Actions
 
         ConversationOptionButton _button;
 
+        private static int actionNumber = 1;
+
         protected override JsonSchema Schema => new()
         {
         };
@@ -44,10 +46,23 @@ namespace NeuroValet.Actions
                     name = $"converse_close_topic";
                     description = $"Close the conversation";
                 }
-                else
+                else if (topicButton.conversationTopic.categoryType == Game.Conversation.ConversationTopic.CategoryType.City)
                 {
                     name = $"converse_topic_{topicButton.conversationTopic.city.displayName.ToLower()}";
                     description = topicButton.infoText;
+                }
+                else if (topicButton.conversationTopic.categoryType == Game.Conversation.ConversationTopic.CategoryType.NPCResponse)
+                {
+                    // usually some generic question by the NPC with a YES/NO style response, so will have multiple buttons and need to differentiate them
+                    // so just using a generic counter for that
+                    name = $"converse_topic_response_{actionNumber++}";
+                    description = topicButton.text.text;
+                }
+                else
+                {
+                    // Just in case other category type conversations do happen and have buttons related to them (maybe FoggConversation does, idk)
+                    name = $"converse_topic_{actionNumber++}";
+                    description = topicButton.text.text;
                 }
             }
             else

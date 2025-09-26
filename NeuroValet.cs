@@ -136,7 +136,7 @@ public class NeuroValet : BaseUnityPlugin
             }
 
             // Note, we actually only post updates to neuro in PrepareActionWindow, so won't be spamming messages when nothing changes
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
         }
     }
     
