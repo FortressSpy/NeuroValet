@@ -1,7 +1,5 @@
 ﻿using BepInEx.Logging;
-using GameViews.Cloud;
 using GameViews.Converse;
-using HarmonyLib;
 using NeuroSdk.Actions;
 using NeuroValet.Actions;
 using System;
@@ -9,7 +7,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using static NeuroValet.ActionManager;
-using static NeuroValet.Actions.StoryAction;
 
 namespace NeuroValet.ViewsParsers
 {
@@ -72,7 +69,7 @@ namespace NeuroValet.ViewsParsers
             }
             else
             {
-                return _conversationView.isVisible; // Return the visibility status of the story view
+                return _conversationView.isVisible; // Return the visibility status of the conversation view
             }
         }
     }

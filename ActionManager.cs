@@ -34,6 +34,7 @@ namespace NeuroValet
             // So add parsers in order of priority
             viewParsers = new List<IViewParser>
             {
+                CreditsViewParser.Instance,
                 ConverseViewParser.Instance,
                 StoryViewParser.Instance,
                 MarketAndLuggageViewParser.Instance,
