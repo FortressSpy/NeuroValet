@@ -44,6 +44,7 @@ public class NeuroValet : BaseUnityPlugin
         string pluginDir = System.IO.Path.GetDirectoryName(Info.Location);
         string cursorPath = System.IO.Path.Combine(pluginDir, @"Assets\mouse-pointer.png");
         MouseSimulator.Instance.LoadCursorTexture(cursorPath);
+        SpritesOverrides.LoadSprites(pluginDir);
 
         actionManager = new ActionManager(Logger);
 
@@ -78,6 +79,7 @@ public class NeuroValet : BaseUnityPlugin
     {
         if (!isReady) return;
 
+        SpritesOverrides.OverrideSprite();
         CheckDebugInputs();
     }
 

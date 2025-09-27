@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
@@ -36,10 +36,22 @@
 	<Reference Include="Unity.TextMeshPro">
 		<HintPath>lib\Unity.TextMeshPro.dll</HintPath>
 	</Reference>
+	  <Reference Include="UnityEngine.UI">
+		  <HintPath>lib\UnityEngine.UI.dll</HintPath>
+	  </Reference>
   </ItemGroup>
   
   <ItemGroup>
     <None Update="Assets\mouse-pointer.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\NeuroPortrait.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Vedal.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\VedalBubbleView.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
