@@ -33,6 +33,8 @@ namespace NeuroValet.ViewsParsers
             _storyView = (StoryView)GameViews.Static.storyView;
         }
 
+        // TODO - if there are same number of decisions between dialogues, this doesn't recognize the change and we don't report the new actions
+        // TODO - maybe have some indicator within the name of Story Action?
         public PossibleActions GetPossibleActions(ManualLogSource logger)
         {
             PossibleActions possibleActions = new PossibleActions();

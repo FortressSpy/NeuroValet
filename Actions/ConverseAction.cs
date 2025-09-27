@@ -55,6 +55,8 @@ namespace NeuroValet.Actions
                 {
                     // usually some generic question by the NPC with a YES/NO style response, so will have multiple buttons and need to differentiate them
                     // so just using a generic counter for that
+                    // TODO - this causes a minor bug - because everytime we call this it will increment the counter, and we query for actions every second~
+                    // TODO - so this means every second we will say we have no actions (even though we don't)?
                     name = $"converse_topic_response_{actionNumber++}";
                     description = topicButton.text.text;
                 }
