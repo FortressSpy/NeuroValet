@@ -8,6 +8,7 @@ using NeuroSdk.Messages.Outgoing;
 using NeuroValet.Overrides;
 using System;
 using System.Collections;
+using System.Text;
 using UnityEngine;
 
 namespace NeuroValet;
@@ -132,13 +133,33 @@ public class NeuroValet : BaseUnityPlugin
             else
             {
                 UnregisterActionWindow();
+                yield return ReportPossibleNewRoutes();
             }
 
             // Note, we actually only post updates to neuro in PrepareActionWindow, so won't be spamming messages when nothing changes
             yield return new WaitForSeconds(2f);
         }
     }
-    
+
+    private IEnumerator ReportPossibleNewRoutes()
+    {
+        if (StateReporter.Instance.CurrentStateData.GeneralData.IsRevealingNewRoutes)
+        {
+            StringBuilder context = new StringBuilder();
+            context.AppendLine("New routes are being revealed!");
+
+            var newJourneys = StateReporter.Instance.CurrentStateData.Journey.NewRoutesBeingRevealed;
+            foreach (var journey in newJourneys)
+            {
+                context.AppendLine($"{journey}");
+                context.AppendLine("================================");
+            }
+
+            Context.Send(context.ToString());
+            yield return new WaitForSeconds(2f * newJourneys.Count); // revealing routes takes some time, so no need to work on anything else for now
+        }
+    }
+
     private bool DidPossibleActionsChange(ActionManager.PossibleActions possibleActions)
     {
         if (neuroCurrentActions.Actions == null || neuroCurrentActions.Actions.Count != possibleActions.Actions.Count)

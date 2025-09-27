@@ -40,6 +40,9 @@ namespace NeuroValet.ViewsParsers
             string addedContext = "";
             if (IsViewRelevant()) // make sure the story view is still relevant, even though this was probably called before
             {
+                // fogg bubble doesn't clean up properly after shaving, and stories are usually the next thing to happen afterwards
+                GameViews.Static.bottomNavView.foggPanelView?.ClearFoggBubbles();
+
                 var choices = GetAvailableChoices(ref addedContext);
 
                 foreach (var choice in choices)

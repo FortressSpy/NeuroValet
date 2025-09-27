@@ -35,6 +35,7 @@ namespace NeuroValet
         // Check game state state to see if Neuro can act right now or is waiting on some animations and such
         // Note that even outside this, there are times when Neuro will have no valid actions, that do not fall under this,
         // most likely while travelling or in the initial prologue animation.
+        // TODO - consider adding a short delay when an action has just been done
         public bool CanNeuroActRightNow()
         {
             return !currentStateData.GeneralData.IsRevealingNewRoutes;
