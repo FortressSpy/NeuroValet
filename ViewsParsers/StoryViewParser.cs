@@ -49,7 +49,7 @@ namespace NeuroValet.ViewsParsers
 
                 foreach (var choice in choices)
                 {
-                    possibleActions.Actions.Add(new StoryAction(choice, logger));
+                    possibleActions.Actions.Add(new StoryAction(_storyView.story.state.NumberOfChunks, choice, logger));
                 }
             }
 

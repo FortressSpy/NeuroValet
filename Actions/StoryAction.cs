@@ -18,16 +18,18 @@ namespace NeuroValet.Actions
         }
 
         private readonly ChoiceData _choiceData;
+        private readonly int numberOfChunks;
 
         private ManualLogSource logger;
 
-        public StoryAction(ChoiceData choiceData, ManualLogSource logger)
+        public StoryAction(int numberOfChunks, ChoiceData choiceData, ManualLogSource logger)
         {
-            _choiceData = choiceData;
+            this.numberOfChunks = numberOfChunks;
+            this._choiceData = choiceData;
             this.logger = logger;
         }
 
-        public override string Name => "story_decision_" + _choiceData.ChoiceIndex;
+        public override string Name => $"story_{numberOfChunks}_decision_{_choiceData.ChoiceIndex}";
         protected override string Description => Regex.Replace(_choiceData.ChoiceText, "<.*?>", string.Empty);
 
         protected override JsonSchema Schema => new()
@@ -41,7 +43,7 @@ namespace NeuroValet.Actions
 
         protected override ExecutionResult Validate(ActionJData actionData)
         {
-            logger.Log(LogLevel.Info, $"Validating StoryAction with index: {_choiceData.ChoiceIndex}. [{_choiceData.ChoiceText}].");
+            logger.LogDebug($"Validating StoryAction with index: {_choiceData.ChoiceIndex}. [{_choiceData.ChoiceText}].");
 
             if (StoryViewParser.Instance.HasAction(_choiceData.ChoiceIndex))
             {
