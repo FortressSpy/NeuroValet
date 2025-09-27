@@ -41,13 +41,13 @@ namespace NeuroValet.ViewsParsers
             _creditsView.ClickCloseButton();
         }
 
-        // Is there a story going on right now?
+        // Are we seeing the credits right now?
         public bool IsViewRelevant()
         {
             if (_creditsView == null)
             {
-                // Attempt to reinitialize the StoryView if it is null
-                _creditsView = (CreditsView)GameViews.Static.converseView;
+                // Attempt to reinitialize the CreditsView if it is null
+                _creditsView = (CreditsView)GameViews.Static.creditsView;
                 return _creditsView != null && _creditsView.isVisible;
             }
             else
